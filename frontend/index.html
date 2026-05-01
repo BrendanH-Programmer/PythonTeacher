@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Python Tutor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>AI Python Tutor</h1>
+
+    <!-- LOGIN SECTION (for later auth system) -->
+    <div class="card" id="loginCard">
+        <h2>Login / Register</h2>
+
+        <input id="username" placeholder="Enter username" />
+
+        <div class="row">
+            <button onclick="register()">Register</button>
+            <button onclick="login()">Login</button>
+        </div>
+
+        <p id="authStatus"></p>
+    </div>
+
+    <!-- LESSON AREA (future system) -->
+    <div class="card hidden" id="lessonCard">
+
+        <h2>Lesson Area</h2>
+
+        <select id="lessonSelect">
+            <option value="1">Lesson 1 - Basics</option>
+            <option value="2">Lesson 2 - Variables</option>
+            <option value="3">Lesson 3 - Loops</option>
+        </select>
+
+        <p id="lessonIntro">
+            Select a lesson to begin.
+        </p>
+
+    </div>
+
+    <!-- AI TUTOR SECTION -->
+    <div class="card hidden" id="tutorCard">
+
+        <h2>AI Tutor</h2>
+
+        <textarea id="codeInput" placeholder="Write your Python code here..."></textarea>
+
+        <div class="row">
+            <button onclick="sendCode()">Analyse Code</button>
+            <button onclick="nextHint()">Next Hint</button>
+        </div>
+
+        <h3>Response</h3>
+        <pre id="responseBox"></pre>
+
+        <h3>Error Breakdown</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Priority</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody id="errorTable"></tbody>
+        </table>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
