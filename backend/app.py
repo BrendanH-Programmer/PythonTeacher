@@ -1,11 +1,7 @@
 from flask import Flask, send_from_directory, session
 from flask_cors import CORS
-
-# ✅ Correct imports (FULL PATHS)
+from backend.routes.lesson_routes import lesson_bp
 from backend.routes.auth_routes import auth_bp
-
-# (Only include this if you still have chat system)
-# from backend.routes.chat_routes import chat_bp
 
 
 # -------------------------
