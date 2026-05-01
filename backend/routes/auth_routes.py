@@ -33,7 +33,7 @@ def login():
     result = login_user(username)
 
     if result["success"]:
-        session["user"] = username   # ✅ SESSION STORED HERE
+        session["user"] = username
 
     return jsonify(result)
 
@@ -59,7 +59,7 @@ def me():
 # -------------------
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
-    session.clear()   # ✅ fully destroys session
+    session.clear()
 
     return jsonify({
         "success": True,

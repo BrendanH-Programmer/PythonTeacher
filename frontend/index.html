@@ -2,58 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - AI Python Tutor</title>
+    <title>AI Python Tutor</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body>
-
-<!-- 🔐 SESSION GUARD (IMPORTANT) -->
-<script>
-    fetch("http://127.0.0.1:5000/auth/me", {
-        credentials: "include"
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.logged_in) {
-            window.location.href = "/login.html";
-        }
-    });
-</script>
+<body onload="checkLogin()">
 
 <div class="container">
 
     <h1>AI Python Tutor</h1>
 
-    <button onclick="logout()">Logout</button>
+    <!-- ================= USER INFO ================= -->
+    <div class="card">
+        <p id="userInfo">Loading user...</p>
+        <button onclick="logout()">Logout</button>
+    </div>
 
-    <!-- ================= LESSON AREA ================= -->
+    <!-- ================= LESSON SELECT ================= -->
     <div class="card">
 
         <h2>Lessons</h2>
 
-        <select id="lessonSelect" onchange="loadLesson()">
-            <option value="1">Lesson 1 - Basics</option>
+        <select id="lessonSelect" onchange="startLesson()">
+            <option value="1">Lesson 1 - Python Basics</option>
             <option value="2">Lesson 2 - Variables</option>
-            <option value="3">Lesson 3 - If Statements</option>
-            <option value="4">Lesson 4 - Loops</option>
-            <option value="5">Lesson 5 - Lists</option>
-            <option value="6">Lesson 6 - Functions</option>
-            <option value="7">Lesson 7 - Input</option>
-            <option value="8">Lesson 8 - Errors</option>
-            <option value="9">Lesson 9 - Dictionaries</option>
-            <option value="10">Lesson 10 - Final Project</option>
         </select>
 
-        <h3 id="lessonTitle"></h3>
-        <p id="lessonIntro"></p>
-        <div id="lessonOutcomes"></div>
-        <pre id="lessonDemo"></pre>
+    </div>
+
+    <!-- ================= LESSON FLOW ================= -->
+    <div class="card" id="lessonCard">
+
+        <h2 id="lessonTitle">Select a lesson</h2>
+
+        <div id="lessonContent"></div>
+
+        <div class="row">
+            <button onclick="prevSection()">Back</button>
+            <button onclick="nextSection()">Next</button>
+        </div>
 
     </div>
 
     <!-- ================= AI TUTOR ================= -->
-    <div class="card">
+    <div class="card hidden" id="tutorCard">
 
         <h2>AI Tutor</h2>
 
@@ -64,10 +56,8 @@
             <button onclick="nextHint()">Next Hint</button>
         </div>
 
-        <h3>Response</h3>
         <pre id="responseBox"></pre>
 
-        <h3>Error Breakdown</h3>
         <table>
             <thead>
                 <tr>
@@ -83,8 +73,10 @@
 
 </div>
 
-<script src="js/app.js"></script>
+<!-- scripts -->
 <script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/lesson_engine.js"></script>
 
 </body>
 </html>

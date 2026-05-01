@@ -14,6 +14,7 @@ async function login() {
     document.getElementById("authStatus").innerText = data.message;
 
     if (data.success) {
+        // go to main app explicitly
         window.location.href = "/index.html";
     }
 }
@@ -46,15 +47,25 @@ async function logout() {
 }
 
 
-// -------------------- SESSION GUARD (IMPORTANT) --------------------
+// -------------------- SESSION CHECK (SAFE VERSION) --------------------
 async function checkLogin() {
-    const res = await fetch("http://127.0.0.1:5000/auth/me", {
-        credentials: "include"
-    });
+    try {
+        const res = await fetch("http://127.0.0.1:5000/auth/me", {
+            credentials: "include"
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!data.logged_in) {
+        if (!data.logged_in) {
+            window.location.href = "/login.html";
+        } else {
+            const userBox = document.getElementById("userInfo");
+            if (userBox) {
+                userBox.innerText = `Logged in as: ${data.user}`;
+            }
+        }
+    } catch (err) {
+        console.error("Session check failed:", err);
         window.location.href = "/login.html";
     }
 }

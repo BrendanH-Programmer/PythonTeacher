@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify, session, request
 from backend.data.lessons import LESSONS
-from backend.users.user_store import get_user, load_users, save_users
+from backend.users.progress_service import get_progress, update_progress
 
 lesson_bp = Blueprint("lessons", __name__)
 
@@ -10,13 +10,14 @@ lesson_bp = Blueprint("lessons", __name__)
 # -------------------------
 @lesson_bp.route("/lessons", methods=["GET"])
 def get_all_lessons():
+
     return jsonify({
         "success": True,
         "lessons": [
             {
                 "id": k,
                 "title": v["title"],
-                "difficulty": v["difficulty"]
+                "order": v["order"]
             }
             for k, v in LESSONS.items()
         ]
@@ -24,59 +25,79 @@ def get_all_lessons():
 
 
 # -------------------------
-# GET SINGLE LESSON
+# GET LESSON SECTION
 # -------------------------
-@lesson_bp.route("/lesson/<int:lesson_id>", methods=["GET"])
-def get_lesson(lesson_id):
+@lesson_bp.route("/lesson/<int:lesson_id>/section/<section>", methods=["GET"])
+def get_lesson_section(lesson_id, section):
 
     lesson = LESSONS.get(lesson_id)
 
     if not lesson:
-        return jsonify({
-            "success": False,
-            "message": "Lesson not found"
-        }), 404
+        return jsonify({"success": False, "message": "Lesson not found"}), 404
+
+    section_data = lesson["sections"].get(section)
+
+    if not section_data:
+        return jsonify({"success": False, "message": "Section not found"}), 404
 
     return jsonify({
         "success": True,
-        "lesson": lesson
+        "lesson_id": lesson_id,
+        "lesson_title": lesson["title"],
+        "section": section,
+        "data": section_data
     })
 
 
 # -------------------------
-# COMPLETE LESSON (FIXED)
+# SAVE PROGRESS
 # -------------------------
-@lesson_bp.route("/lesson/complete/<int:lesson_id>", methods=["POST"])
-def complete_lesson(lesson_id):
+@lesson_bp.route("/lesson/progress", methods=["POST"])
+def save_progress():
+
+    data = request.get_json()
 
     username = session.get("user")
 
     if not username:
-        return jsonify({
-            "success": False,
-            "message": "Not logged in"
-        }), 401
+        return jsonify({"success": False, "message": "Not logged in"}), 401
 
-    users = load_users()
+    lesson_id = data.get("lesson_id")
+    section = data.get("section")
 
-    if username not in users:
-        return jsonify({
-            "success": False,
-            "message": "User not found"
-        }), 404
+    success = update_progress(username, lesson_id, section)
 
-    user = users[username]
+    return jsonify({
+        "success": success,
+        "message": "Progress updated"
+    })
 
-    if "progress" not in user:
-        user["progress"] = []
 
-    if lesson_id not in user["progress"]:
-        user["progress"].append(lesson_id)
+# -------------------------
+# GET USER PROGRESS
+# -------------------------
+@lesson_bp.route("/user/progress", methods=["GET"])
+def user_progress():
 
-    save_users(users)
+    username = session.get("user")
+
+    if not username:
+        return jsonify({"success": False, "message": "Not logged in"}), 401
+
+    progress = get_progress(username)
 
     return jsonify({
         "success": True,
-        "message": f"Lesson {lesson_id} completed",
-        "progress": user["progress"]
+        "progress": progress
     })
+
+# -------------------------
+# USER PROGRESSION LOCKED ROUTE
+# -------------------------
+
+@lesson_bp.route("/lesson/<int:lesson_id>/next", methods=["GET"])
+def next_section():
+    username = session.get("user")
+
+    if not username:
+        return jsonify({"error": "not logged in"}), 401

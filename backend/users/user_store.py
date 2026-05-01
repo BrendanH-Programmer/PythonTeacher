@@ -1,15 +1,18 @@
 import json
 import os
 
-USER_FILE = os.path.join(os.path.dirname(__file__), "../../data/users.json")
-
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+USER_FILE = os.path.join(BASE_DIR, "data", "users.json")
 
 def load_users():
     if not os.path.exists(USER_FILE):
         return {}
 
     with open(USER_FILE, "r") as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {}
 
 
 def save_users(users):
