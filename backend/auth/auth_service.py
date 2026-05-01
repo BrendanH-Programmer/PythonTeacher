@@ -1,4 +1,3 @@
-# ✅ FIXED IMPORT
 from backend.users.user_store import get_user, add_user
 
 

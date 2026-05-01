@@ -2,49 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Python Tutor</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Dashboard - AI Python Tutor</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
+
+<!-- 🔐 SESSION GUARD (IMPORTANT) -->
+<script>
+    fetch("http://127.0.0.1:5000/auth/me", {
+        credentials: "include"
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.logged_in) {
+            window.location.href = "/login.html";
+        }
+    });
+</script>
 
 <div class="container">
 
     <h1>AI Python Tutor</h1>
 
-    <!-- LOGIN SECTION (for later auth system) -->
-    <div class="card" id="loginCard">
-        <h2>Login / Register</h2>
+    <button onclick="logout()">Logout</button>
 
-        <input id="username" placeholder="Enter username" />
+    <!-- ================= LESSON AREA ================= -->
+    <div class="card">
 
-        <div class="row">
-            <button onclick="register()">Register</button>
-            <button onclick="login()">Login</button>
-        </div>
+        <h2>Lessons</h2>
 
-        <p id="authStatus"></p>
-    </div>
-
-    <!-- LESSON AREA (future system) -->
-    <div class="card hidden" id="lessonCard">
-
-        <h2>Lesson Area</h2>
-
-        <select id="lessonSelect">
+        <select id="lessonSelect" onchange="loadLesson()">
             <option value="1">Lesson 1 - Basics</option>
             <option value="2">Lesson 2 - Variables</option>
-            <option value="3">Lesson 3 - Loops</option>
+            <option value="3">Lesson 3 - If Statements</option>
+            <option value="4">Lesson 4 - Loops</option>
+            <option value="5">Lesson 5 - Lists</option>
+            <option value="6">Lesson 6 - Functions</option>
+            <option value="7">Lesson 7 - Input</option>
+            <option value="8">Lesson 8 - Errors</option>
+            <option value="9">Lesson 9 - Dictionaries</option>
+            <option value="10">Lesson 10 - Final Project</option>
         </select>
 
-        <p id="lessonIntro">
-            Select a lesson to begin.
-        </p>
+        <h3 id="lessonTitle"></h3>
+        <p id="lessonIntro"></p>
+        <div id="lessonOutcomes"></div>
+        <pre id="lessonDemo"></pre>
 
     </div>
 
-    <!-- AI TUTOR SECTION -->
-    <div class="card hidden" id="tutorCard">
+    <!-- ================= AI TUTOR ================= -->
+    <div class="card">
 
         <h2>AI Tutor</h2>
 
@@ -74,7 +83,8 @@
 
 </div>
 
-<script src="app.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
 
 </body>
 </html>

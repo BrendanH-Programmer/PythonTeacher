@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, session
 from backend.data.lessons import LESSONS
+from backend.users.user_store import get_user, load_users, save_users
 
 lesson_bp = Blueprint("lessons", __name__)
 
@@ -43,7 +44,7 @@ def get_lesson(lesson_id):
 
 
 # -------------------------
-# PROGRESS UPDATE
+# COMPLETE LESSON (FIXED)
 # -------------------------
 @lesson_bp.route("/lesson/complete/<int:lesson_id>", methods=["POST"])
 def complete_lesson(lesson_id):
@@ -56,19 +57,26 @@ def complete_lesson(lesson_id):
             "message": "Not logged in"
         }), 401
 
-    from backend.users.user_store import get_user, save_users
+    users = load_users()
 
-    users = get_user(username)
+    if username not in users:
+        return jsonify({
+            "success": False,
+            "message": "User not found"
+        }), 404
 
-    if "progress" not in users:
-        users["progress"] = []
+    user = users[username]
 
-    if lesson_id not in users["progress"]:
-        users["progress"].append(lesson_id)
+    if "progress" not in user:
+        user["progress"] = []
 
-    save_users(load_users := __import__("backend.users.user_store", fromlist=["load_users"]).load_users())
+    if lesson_id not in user["progress"]:
+        user["progress"].append(lesson_id)
+
+    save_users(users)
 
     return jsonify({
         "success": True,
-        "message": f"Lesson {lesson_id} completed"
+        "message": f"Lesson {lesson_id} completed",
+        "progress": user["progress"]
     })

@@ -1,6 +1,4 @@
 from flask import Blueprint, request, jsonify, session
-
-# ✅ FIXED IMPORT
 from backend.auth.auth_service import register_user, login_user
 
 auth_bp = Blueprint("auth", __name__)
@@ -12,7 +10,6 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-
     username = data.get("username")
 
     if not username:
@@ -22,7 +19,6 @@ def register():
         }), 400
 
     result = register_user(username)
-
     return jsonify(result)
 
 
@@ -32,15 +28,30 @@ def register():
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-
     username = data.get("username")
 
     result = login_user(username)
 
     if result["success"]:
-        session["user"] = username
+        session["user"] = username   # ✅ SESSION STORED HERE
 
     return jsonify(result)
+
+
+# -------------------
+# CURRENT USER CHECK (VERY IMPORTANT FOR FRONTEND)
+# -------------------
+@auth_bp.route("/me", methods=["GET"])
+def me():
+    user = session.get("user")
+
+    if not user:
+        return jsonify({"logged_in": False})
+
+    return jsonify({
+        "logged_in": True,
+        "user": user
+    })
 
 
 # -------------------
@@ -48,9 +59,9 @@ def login():
 # -------------------
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
-    session.pop("user", None)
+    session.clear()   # ✅ fully destroys session
 
     return jsonify({
         "success": True,
-        "message": "Logged out"
+        "message": "Logged out successfully"
     })

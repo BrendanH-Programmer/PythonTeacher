@@ -1,78 +1,67 @@
 let hintLevel = 1;
 
-// --------------------
-// AUTH
-// --------------------
-async function register() {
-    const username = document.getElementById("username").value;
-
-    const res = await fetch("http://127.0.0.1:5000/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username })
-    });
-
-    const data = await res.json();
-    document.getElementById("authStatus").innerText = data.message;
-}
-
-async function login() {
-    const username = document.getElementById("username").value;
-
-    const res = await fetch("http://127.0.0.1:5000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ username })
-    });
-
-    const data = await res.json();
-
-    document.getElementById("authStatus").innerText = data.message;
-
-    if (data.success) {
-        document.getElementById("lessonCard").classList.remove("hidden");
-        document.getElementById("tutorCard").classList.remove("hidden");
-    }
-}
-
-// --------------------
-// AI TUTOR (placeholder for now)
-// --------------------
-async function sendCode() {
+async function sendCode(reset = true) {
     const code = document.getElementById("codeInput").value;
+    const responseBox = document.getElementById("responseBox");
+    const tableBody = document.getElementById("errorTable");
 
-    const res = await fetch("http://127.0.0.1:5000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            code,
-            hint_level: hintLevel
-        })
-    });
+    if (reset) hintLevel = 1;
 
-    const data = await res.json();
+    responseBox.innerText = "Running analysis...";
 
-    document.getElementById("responseBox").innerText =
-        data.hint || "No response";
-
-    const table = document.getElementById("errorTable");
-    table.innerHTML = "";
-
-    if (data.errors) {
-        data.errors.forEach(err => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${err.error_type}</td>
-                <td>${err.priority}</td>
-                <td>${err.message}</td>
-            `;
-            table.appendChild(row);
+    try {
+        const res = await fetch("http://127.0.0.1:5000/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                code,
+                hint_level: hintLevel
+            })
         });
+
+        const data = await res.json();
+
+        // -------------------
+        // HINT OUTPUT
+        // -------------------
+        responseBox.innerText =
+            `Hint Level ${hintLevel}:\n\n` +
+            (data.hint || "No hint returned");
+
+        // -------------------
+        // ERROR TABLE
+        // -------------------
+        tableBody.innerHTML = "";
+
+        if (data.errors && data.errors.length > 0) {
+
+            data.errors.forEach(err => {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${err.error_type || "Unknown"}</td>
+                    <td>${err.priority ?? "-"}</td>
+                    <td>${err.message || "No message"}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+
+        } else {
+            tableBody.innerHTML =
+                "<tr><td colspan='3'>No errors detected</td></tr>";
+        }
+
+    } catch (error) {
+        console.error(error);
+        responseBox.innerText = "Error connecting to server.";
     }
 }
 
 function nextHint() {
     hintLevel = Math.min(hintLevel + 1, 3);
-    sendCode();
+    sendCode(false);
 }
