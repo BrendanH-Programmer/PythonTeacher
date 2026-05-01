@@ -8,7 +8,11 @@ def get_progress(username):
     if not user:
         return {}
 
-    return user.get("progress", {})
+    return user.get("progress", {
+        "last_lesson": 1,
+        "last_section": "intro",
+        "completed_lessons": []
+    })
 
 
 def update_progress(username, lesson_id, section):
@@ -19,16 +23,18 @@ def update_progress(username, lesson_id, section):
 
     user = users[username]
 
-    if "progress" not in user:
-        user["progress"] = {}
+    if "progress" not in user or not isinstance(user["progress"], dict):
+        user["progress"] = {
+            "last_lesson": 1,
+            "last_section": "intro",
+            "completed_lessons": []
+        }
 
-    lesson_key = str(lesson_id)
+    progress = user["progress"]
 
-    if lesson_key not in user["progress"]:
-        user["progress"][lesson_key] = []
-
-    if section not in user["progress"][lesson_key]:
-        user["progress"][lesson_key].append(section)
+    # update last position
+    progress["last_lesson"] = lesson_id
+    progress["last_section"] = section
 
     save_users(users)
     return True

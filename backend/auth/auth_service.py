@@ -13,7 +13,11 @@ def register_user(username):
         }
 
     add_user(username, {
-        "progress": []
+        "progress": {
+            "last_lesson": 1,
+            "last_section": "intro",
+            "completed_lessons": []
+        }
     })
 
     return {

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, session, request
 from backend.data.lessons import LESSONS
-from backend.users.progress_service import get_progress, update_progress
+from backend.users.user_store import load_users, save_users
 
 lesson_bp = Blueprint("lessons", __name__)
 
@@ -56,48 +56,98 @@ def get_lesson_section(lesson_id, section):
 def save_progress():
 
     data = request.get_json()
-
     username = session.get("user")
 
     if not username:
-        return jsonify({"success": False, "message": "Not logged in"}), 401
+        return jsonify({"success": False}), 401
 
     lesson_id = data.get("lesson_id")
     section = data.get("section")
 
-    success = update_progress(username, lesson_id, section)
+    users = load_users()
+    user = users[username]
 
-    return jsonify({
-        "success": success,
-        "message": "Progress updated"
+    progress = user.get("progress", {
+        "last_lesson": 1,
+        "last_section": "intro",
+        "completed_lessons": []
     })
 
+    progress["last_lesson"] = lesson_id
+    progress["last_section"] = section
+
+    # mark completion
+    if section == "review":
+        if lesson_id not in progress["completed_lessons"]:
+            progress["completed_lessons"].append(lesson_id)
+
+    user["progress"] = progress
+
+    save_users(users)
+
+    return jsonify({"success": True})
 
 # -------------------------
-# GET USER PROGRESS
+# RESUME
 # -------------------------
-@lesson_bp.route("/user/progress", methods=["GET"])
-def user_progress():
+@lesson_bp.route("/user/resume", methods=["GET"])
+def resume():
 
     username = session.get("user")
 
     if not username:
-        return jsonify({"success": False, "message": "Not logged in"}), 401
+        return jsonify({"success": False}), 401
 
-    progress = get_progress(username)
+    users = load_users()
+    user = users.get(username)
+
+    if not user:
+        return jsonify({"success": False}), 404
+
+    progress = user.get("progress", {})
 
     return jsonify({
         "success": True,
-        "progress": progress
+        "last_lesson": progress.get("last_lesson", 1),
+        "last_section": progress.get("last_section", "intro")
     })
 
-# -------------------------
-# USER PROGRESSION LOCKED ROUTE
-# -------------------------
 
-@lesson_bp.route("/lesson/<int:lesson_id>/next", methods=["GET"])
-def next_section():
+# -------------------------
+# COMPLETED LESSONS
+# -------------------------
+@lesson_bp.route("/user/completed", methods=["GET"])
+def completed():
+
     username = session.get("user")
 
     if not username:
-        return jsonify({"error": "not logged in"}), 401
+        return jsonify({"success": False}), 401
+
+    users = load_users()
+    user = users.get(username, {})
+
+    progress = user.get("progress", {})
+
+    return jsonify({
+        "success": True,
+        "completed": progress.get("completed_lessons", [])
+    })
+
+# -------------------------
+# CHECK UNLOCKED
+# -------------------------
+def is_lesson_unlocked(username, lesson_id):
+    users = load_users()
+    user = users.get(username)
+
+    if not user:
+        return lesson_id == 1
+
+    progress = user.get("progress", {})
+    completed = progress.get("completed_lessons", [])
+
+    if lesson_id == 1:
+        return True
+
+    return (lesson_id - 1) in completed

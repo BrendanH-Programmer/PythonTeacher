@@ -1,6 +1,8 @@
 let currentLesson = 1;
 let currentSectionIndex = 0;
 
+let completedLessons = [];
+
 const sectionsOrder = [
     "intro",
     "outcomes",
@@ -9,12 +11,89 @@ const sectionsOrder = [
     "review"
 ];
 
-async function startLesson() {
-    currentLesson = document.getElementById("lessonSelect").value;
-    currentSectionIndex = 0;
-    loadSection();
+
+// -------------------------
+// RESUME SESSION
+// -------------------------
+async function resumeSession() {
+
+    const res = await fetch("http://127.0.0.1:5000/api/user/resume", {
+        credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    currentLesson = parseInt(data.last_lesson);
+
+    let idx = sectionsOrder.indexOf(data.last_section);
+    currentSectionIndex = idx === -1 ? 0 : idx;
+
+    document.getElementById("lessonSelect").value = currentLesson;
+
+    await loadCompletedLessons();
+    await loadSection();
 }
 
+
+// -------------------------
+// LOAD COMPLETED LESSONS
+// -------------------------
+async function loadCompletedLessons() {
+
+    const res = await fetch("http://127.0.0.1:5000/api/user/completed", {
+        credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        completedLessons = data.completed.map(Number);
+    }
+
+    lockLessons();
+}
+
+
+// -------------------------
+// LOCK LESSONS
+// -------------------------
+function lockLessons() {
+
+    const select = document.getElementById("lessonSelect");
+
+    select.querySelectorAll("option").forEach(option => {
+
+        const id = parseInt(option.value);
+
+        if (id === 1) return;
+
+        if (!completedLessons.includes(id - 1)) {
+            option.disabled = true;
+            option.style.opacity = "0.4";
+        } else {
+            option.disabled = false;
+            option.style.opacity = "1";
+        }
+    });
+}
+
+
+// -------------------------
+// START LESSON
+// -------------------------
+async function startLesson() {
+    await loadLessons();
+    currentLesson = parseInt(document.getElementById("lessonSelect").value);
+    currentSectionIndex = 0;
+    await loadSection();
+}
+
+
+// -------------------------
+// LOAD SECTION
+// -------------------------
 async function loadSection() {
 
     const section = sectionsOrder[currentSectionIndex];
@@ -26,76 +105,97 @@ async function loadSection() {
 
     const data = await res.json();
 
-    currentLesson = parseInt(document.getElementById("lessonSelect").value);
+    const box = document.getElementById("lessonContent");
     const title = document.getElementById("lessonTitle");
 
-    title.innerText = data.lesson_title + " - " + section.toUpperCase();
+    title.innerText = `${data.lesson_title} - ${section.toUpperCase()}`;
 
     const content = data.data;
 
-    // ---------------- INTRO ----------------
-    if (section === "intro") {
-        box.innerHTML = `<p>${content.content}</p>`;
-    }
+    if (section === "intro") box.innerHTML = `<p>${content.content}</p>`;
 
-    // ---------------- OUTCOMES ----------------
     if (section === "outcomes") {
-
         box.innerHTML = `
-            <h3>Learning Outcomes</h3>
             <ul>
                 ${content.content.map(o => `<li>${o}</li>`).join("")}
             </ul>
         `;
     }
 
-    // ---------------- DEMO ----------------
     if (section === "demo") {
-
         box.innerHTML = `
-            <h3>Demo Code</h3>
             <pre>${content.code}</pre>
             <p>${content.explanation}</p>
         `;
     }
 
-    // ---------------- PRACTICE ----------------
     if (section === "practice") {
-
         document.getElementById("tutorCard").classList.remove("hidden");
-
-        box.innerHTML = `
-            <h3>Practice Task</h3>
-            <p>${content.task}</p>
-            <p><b>Use the AI tutor below to help you.</b></p>
-        `;
+        box.innerHTML = `<p>${content.task}</p>`;
     }
 
-    // ---------------- REVIEW ----------------
     if (section === "review") {
-
         document.getElementById("tutorCard").classList.add("hidden");
 
         box.innerHTML = `
-            <h3>Review</h3>
             <p>${content.summary}</p>
-            <p>Great work! You can now move to the next lesson.</p>
+            <h3>Lesson Complete ✓</h3>
+            <button onclick="markProgress()">Finish Lesson</button>
         `;
-    }
-}
+    }}
 
-function nextSection() {
+
+// -------------------------
+// NEXT SECTION
+// -------------------------
+async function nextSection() {
+
+    // SAVE PROGRESS ON EVERY STEP
+    await markProgress();
 
     if (currentSectionIndex < sectionsOrder.length - 1) {
         currentSectionIndex++;
-        loadSection();
+        await loadSection();
     }
 }
 
-function prevSection() {
+// -------------------------
+// SAVE PROGRESS
+// -------------------------
+async function markProgress() {
 
-    if (currentSectionIndex > 0) {
-        currentSectionIndex--;
-        loadSection();
+    await fetch("http://127.0.0.1:5000/api/lesson/progress", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "include",
+        body: JSON.stringify({
+            lesson_id: currentLesson,
+            section: sectionsOrder[currentSectionIndex]
+        })
+    });
+}
+
+// -------------------------
+// LOAD LESSONS
+// -------------------------
+async function loadLessons() {
+    const res = await fetch("http://127.0.0.1:5000/api/user/progress", {
+        credentials: "include"
+    });
+
+    const data = await res.json();
+
+    const select = document.getElementById("lessonSelect");
+
+    const completed = data.progress?.completed_lessons || [];
+
+    for (let i = 0; i < select.options.length; i++) {
+        const lessonId = parseInt(select.options[i].value);
+
+        if (lessonId > 1 && !completed.includes(lessonId - 1)) {
+            select.options[i].disabled = true;
+        } else {
+            select.options[i].disabled = false;
+        }
     }
 }

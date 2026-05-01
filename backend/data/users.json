@@ -1,5 +1,11 @@
 {
     "Brendan": {
-        "progress": []
+        "progress": {
+            "last_lesson": 1,
+            "last_section": "review",
+            "completed_lessons": [
+                1
+            ]
+        }
     }
 }
