@@ -1,86 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>AI Python Tutor</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body onload="initApp()">
+<body onload="loadDashboard()">
+
 <div class="container">
 
-    <h1>AI Python Tutor</h1>
+    <h1>Choose a Lesson</h1>
 
-    <!-- ================= USER INFO ================= -->
-    <div class="card">
-        <p id="userInfo">Loading user...</p>
-        <button onclick="logout()">Logout</button>
-    </div>
+    <p id="userInfo">Loading...</p>
 
-    <!-- ================= LESSON SELECT ================= -->
-    <div class="card">
+    <!-- CONTINUE BUTTON -->
+    <div id="continueBox"></div>
 
-        <h2>Lessons</h2>
+    <!-- LESSON LIST -->
+    <div id="lessonList"></div>
 
-        <select id="lessonSelect" onchange="startLesson()">
-            <option value="1">Lesson 1 - Python Basics</option>
-            <option value="2">Lesson 2 - Variables</option>
-        </select>
-
-    </div>
-
-    <!-- ================= LESSON FLOW ================= -->
-    <div class="card" id="lessonCard">
-
-        <h2 id="lessonTitle">Select a lesson</h2>
-
-        <div id="lessonContent"></div>
-
-        <div class="row">
-            <button onclick="prevSection()">Back</button>
-            <button onclick="nextSection()">Next</button>
-        </div>
-
-    </div>
-
-    <!-- ================= AI TUTOR ================= -->
-    <div class="card hidden" id="tutorCard">
-
-        <h2>AI Tutor</h2>
-
-        <textarea id="codeInput" placeholder="Write your Python code here..."></textarea>
-
-        <div class="row">
-            <button onclick="sendCode()">Analyse Code</button>
-            <button onclick="nextHint()">Next Hint</button>
-        </div>
-
-        <pre id="responseBox"></pre>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Priority</th>
-                    <th>Message</th>
-                </tr>
-            </thead>
-            <tbody id="errorTable"></tbody>
-        </table>
-
-    </div>
+    <button onclick="logout()">Logout</button>
 
 </div>
 
-<!-- scripts -->
 <script src="js/auth.js"></script>
-<script src="js/app.js"></script>
-<script src="js/lesson_engine.js"></script>
+
 
 <script>
-async function initApp() {
+async function loadDashboard() {
+
     await checkLogin();
-    await resumeSession();
+
+    const res = await fetch("http://127.0.0.1:5000/api/user/lesson-status", {
+        credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    const lessons = data.lessons;
+
+    const container = document.getElementById("lessonList");
+    container.innerHTML = "";
+
+    lessons.forEach(l => {
+
+        const card = document.createElement("div");
+        card.className = "lesson-card";
+
+        let statusText = "";
+        let actionText = "";
+
+        // ✅ FIXED PRIORITY LOGIC
+
+        if (l.completed) {
+            statusText = "✅ Completed";
+            actionText = "Review";
+        }
+        else if (l.unlocked && !l.completed) {
+            statusText = l.current ? "▶ Continue Learning" : "🟢 Available";
+            actionText = l.current ? "Continue" : "Start";
+        }
+        else {
+            statusText = "🔒 Locked";
+        }
+
+        card.innerHTML = `
+            <h3>${l.title}</h3>
+            <p>${statusText}</p>
+            ${l.unlocked
+                ? `<button onclick="openLesson(${l.id})">${actionText}</button>`
+                : ""
+            }
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+function openLesson(id) {
+    window.location.href = `/lesson.html?id=${id}`;
 }
 </script>
 

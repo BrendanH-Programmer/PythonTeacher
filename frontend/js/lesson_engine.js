@@ -1,8 +1,6 @@
 let currentLesson = 1;
 let currentSectionIndex = 0;
 
-let completedLessons = [];
-
 const sectionsOrder = [
     "intro",
     "outcomes",
@@ -13,11 +11,11 @@ const sectionsOrder = [
 
 
 // -------------------------
-// RESUME SESSION
+// RESUME SESSION (optional use)
 // -------------------------
 async function resumeSession() {
 
-    const res = await fetch("http://127.0.0.1:5000/api/user/resume", {
+    const res = await fetch("http://127.0.0.1:5000/api/user/progress", {
         credentials: "include"
     });
 
@@ -25,68 +23,11 @@ async function resumeSession() {
 
     if (!data.success) return;
 
-    currentLesson = parseInt(data.last_lesson);
+    currentLesson = data.progress.last_lesson || 1;
 
-    let idx = sectionsOrder.indexOf(data.last_section);
+    const idx = sectionsOrder.indexOf(data.progress.last_section);
     currentSectionIndex = idx === -1 ? 0 : idx;
 
-    document.getElementById("lessonSelect").value = currentLesson;
-
-    await loadCompletedLessons();
-    await loadSection();
-}
-
-
-// -------------------------
-// LOAD COMPLETED LESSONS
-// -------------------------
-async function loadCompletedLessons() {
-
-    const res = await fetch("http://127.0.0.1:5000/api/user/completed", {
-        credentials: "include"
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-        completedLessons = data.completed.map(Number);
-    }
-
-    lockLessons();
-}
-
-
-// -------------------------
-// LOCK LESSONS
-// -------------------------
-function lockLessons() {
-
-    const select = document.getElementById("lessonSelect");
-
-    select.querySelectorAll("option").forEach(option => {
-
-        const id = parseInt(option.value);
-
-        if (id === 1) return;
-
-        if (!completedLessons.includes(id - 1)) {
-            option.disabled = true;
-            option.style.opacity = "0.4";
-        } else {
-            option.disabled = false;
-            option.style.opacity = "1";
-        }
-    });
-}
-
-
-// -------------------------
-// START LESSON
-// -------------------------
-async function startLesson() {
-    await loadLessons();
-    currentLesson = parseInt(document.getElementById("lessonSelect").value);
-    currentSectionIndex = 0;
     await loadSection();
 }
 
@@ -107,12 +48,18 @@ async function loadSection() {
 
     const box = document.getElementById("lessonContent");
     const title = document.getElementById("lessonTitle");
+    const tutor = document.getElementById("tutorCard");
 
     title.innerText = `${data.lesson_title} - ${section.toUpperCase()}`;
 
     const content = data.data;
 
-    if (section === "intro") box.innerHTML = `<p>${content.content}</p>`;
+    // always reset UI state
+    document.querySelector(".row").style.display = "flex";
+
+    if (section === "intro") {
+        box.innerHTML = `<p>${content.content}</p>`;
+    }
 
     if (section === "outcomes") {
         box.innerHTML = `
@@ -130,19 +77,20 @@ async function loadSection() {
     }
 
     if (section === "practice") {
-        document.getElementById("tutorCard").classList.remove("hidden");
+        tutor.classList.remove("hidden");
         box.innerHTML = `<p>${content.task}</p>`;
     }
 
     if (section === "review") {
-        document.getElementById("tutorCard").classList.add("hidden");
+        tutor.classList.add("hidden");
 
         box.innerHTML = `
             <p>${content.summary}</p>
             <h3>Lesson Complete ✓</h3>
-            <button onclick="markProgress()">Finish Lesson</button>
+            <button onclick="finishLesson()">Finish Lesson</button>
         `;
-    }}
+    }
+}
 
 
 // -------------------------
@@ -150,7 +98,6 @@ async function loadSection() {
 // -------------------------
 async function nextSection() {
 
-    // SAVE PROGRESS ON EVERY STEP
     await markProgress();
 
     if (currentSectionIndex < sectionsOrder.length - 1) {
@@ -159,43 +106,76 @@ async function nextSection() {
     }
 }
 
+
 // -------------------------
 // SAVE PROGRESS
 // -------------------------
 async function markProgress() {
 
+    const section = sectionsOrder[currentSectionIndex];
+
     await fetch("http://127.0.0.1:5000/api/lesson/progress", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
             lesson_id: currentLesson,
-            section: sectionsOrder[currentSectionIndex]
+            section: section
         })
     });
 }
 
+
 // -------------------------
-// LOAD LESSONS
+// FINISH LESSON
 // -------------------------
-async function loadLessons() {
-    const res = await fetch("http://127.0.0.1:5000/api/user/progress", {
+async function finishLesson() {
+
+    await fetch("http://127.0.0.1:5000/api/lesson/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+            lesson_id: currentLesson,
+            section: "review"
+        })
+    });
+
+    window.location.href = "/index.html";
+}
+
+
+// -------------------------
+// INIT FROM URL
+// -------------------------
+async function initLessonFromURL() {
+
+    await checkLogin();
+
+    const params = new URLSearchParams(window.location.search);
+    const id = parseInt(params.get("id"));
+
+    if (!id) {
+        window.location.href = "/index.html";
+        return;
+    }
+
+    const res = await fetch("http://127.0.0.1:5000/api/user/lesson-status", {
         credentials: "include"
     });
 
     const data = await res.json();
 
-    const select = document.getElementById("lessonSelect");
+    const lesson = data.lessons.find(l => l.id === id);
 
-    const completed = data.progress?.completed_lessons || [];
-
-    for (let i = 0; i < select.options.length; i++) {
-        const lessonId = parseInt(select.options[i].value);
-
-        if (lessonId > 1 && !completed.includes(lessonId - 1)) {
-            select.options[i].disabled = true;
-        } else {
-            select.options[i].disabled = false;
-        }
+    if (!lesson || !lesson.unlocked) {
+        alert("🔒 Lesson locked");
+        window.location.href = "/index.html";
+        return;
     }
+
+    currentLesson = id;
+    currentSectionIndex = 0;
+
+    await loadSection();
 }

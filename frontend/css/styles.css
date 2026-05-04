@@ -54,3 +54,36 @@ td, th {
     border: 1px solid #334155;
     padding: 8px;
 }
+
+.lesson-card {
+    background: #1e293b; /* match your card theme */
+    border: 1px solid #334155;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    color: white;
+}
+
+.lesson-card h3 {
+    margin: 0 0 5px 0;
+    color: #f1f5f9;
+}
+
+.lesson-card p {
+    margin: 5px 0 10px 0;
+    font-weight: bold;
+    color: #94a3b8; /* softer text */
+}
+
+.lesson-card button {
+    padding: 8px 12px;
+    cursor: pointer;
+    background: #3b82f6;
+    border: none;
+    border-radius: 6px;
+    color: white;
+}
+
+.lesson-card button:hover {
+    background: #2563eb;
+}

@@ -15,7 +15,7 @@ def get_all_lessons():
         "success": True,
         "lessons": [
             {
-                "id": k,
+                "id": int(k),
                 "title": v["title"],
                 "order": v["order"]
             }
@@ -61,63 +61,34 @@ def save_progress():
     if not username:
         return jsonify({"success": False}), 401
 
-    lesson_id = data.get("lesson_id")
+    lesson_id = int(data.get("lesson_id"))
     section = data.get("section")
 
     users = load_users()
-    user = users[username]
+    user = users.setdefault(username, {"progress": {}})
 
-    progress = user.get("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
-        "completed_lessons": []
-    })
+    progress = user.setdefault("progress", {})
+    progress.setdefault("completed_lessons", [])
 
+    # update last position
     progress["last_lesson"] = lesson_id
     progress["last_section"] = section
 
-    # mark completion
+    # ONLY mark complete if review reached
     if section == "review":
         if lesson_id not in progress["completed_lessons"]:
             progress["completed_lessons"].append(lesson_id)
-
-    user["progress"] = progress
 
     save_users(users)
 
     return jsonify({"success": True})
 
-# -------------------------
-# RESUME
-# -------------------------
-@lesson_bp.route("/user/resume", methods=["GET"])
-def resume():
-
-    username = session.get("user")
-
-    if not username:
-        return jsonify({"success": False}), 401
-
-    users = load_users()
-    user = users.get(username)
-
-    if not user:
-        return jsonify({"success": False}), 404
-
-    progress = user.get("progress", {})
-
-    return jsonify({
-        "success": True,
-        "last_lesson": progress.get("last_lesson", 1),
-        "last_section": progress.get("last_section", "intro")
-    })
-
 
 # -------------------------
-# COMPLETED LESSONS
+# USER PROGRESS
 # -------------------------
-@lesson_bp.route("/user/completed", methods=["GET"])
-def completed():
+@lesson_bp.route("/user/progress", methods=["GET"])
+def user_progress():
 
     username = session.get("user")
 
@@ -127,17 +98,23 @@ def completed():
     users = load_users()
     user = users.get(username, {})
 
-    progress = user.get("progress", {})
+    progress = user.get("progress", {
+        "last_lesson": 1,
+        "last_section": "intro",
+        "completed_lessons": []
+    })
 
     return jsonify({
         "success": True,
-        "completed": progress.get("completed_lessons", [])
+        "progress": progress
     })
 
+
 # -------------------------
-# CHECK UNLOCKED
+# UNLOCK LOGIC
 # -------------------------
 def is_lesson_unlocked(username, lesson_id):
+
     users = load_users()
     user = users.get(username)
 
@@ -145,9 +122,59 @@ def is_lesson_unlocked(username, lesson_id):
         return lesson_id == 1
 
     progress = user.get("progress", {})
-    completed = progress.get("completed_lessons", [])
+    completed = set(map(int, progress.get("completed_lessons", [])))
 
+    # lesson 1 always unlocked
     if lesson_id == 1:
         return True
 
+    # STRICT RULE: must complete previous lesson
     return (lesson_id - 1) in completed
+
+
+# -------------------------
+# LESSON STATUS
+# -------------------------
+@lesson_bp.route("/user/lesson-status", methods=["GET"])
+def lesson_status():
+
+    username = session.get("user")
+
+    if not username:
+        return jsonify({"success": False}), 401
+
+    users = load_users()
+    user = users.get(username, {})
+
+    progress = user.get("progress", {
+        "last_lesson": 1,
+        "last_section": "intro",
+        "completed_lessons": []
+    })
+
+    completed = set(map(int, progress.get("completed_lessons", [])))
+    last_lesson = progress.get("last_lesson", 1)
+
+    lessons_status = []
+
+    for lesson_id, lesson in LESSONS.items():
+
+        lesson_id = int(lesson_id)
+
+        is_completed = lesson_id in completed
+        is_unlocked = lesson_id == 1 or (lesson_id - 1) in completed
+        is_current = lesson_id == last_lesson and not is_completed
+
+        lessons_status.append({
+            "id": lesson_id,
+            "title": lesson["title"],
+            "completed": is_completed,
+            "unlocked": is_unlocked,
+            "current": is_current
+        })
+
+    return jsonify({
+        "success": True,
+        "progress": progress,
+        "lessons": lessons_status
+    })
