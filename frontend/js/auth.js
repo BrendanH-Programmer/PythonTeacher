@@ -1,5 +1,6 @@
 // -------------------- LOGIN --------------------
 async function login() {
+
     const username = document.getElementById("username").value;
 
     const res = await fetch("http://127.0.0.1:5000/auth/login", {
@@ -11,10 +12,10 @@ async function login() {
 
     const data = await res.json();
 
-    document.getElementById("authStatus").innerText = data.message;
+    const status = document.getElementById("authStatus");
+    if (status) status.innerText = data.message;
 
     if (data.success) {
-        // go to main app explicitly
         window.location.href = "/index.html";
     }
 }
@@ -22,6 +23,7 @@ async function login() {
 
 // -------------------- REGISTER --------------------
 async function register() {
+
     const username = document.getElementById("username").value;
 
     const res = await fetch("http://127.0.0.1:5000/auth/register", {
@@ -32,12 +34,14 @@ async function register() {
 
     const data = await res.json();
 
-    document.getElementById("authStatus").innerText = data.message;
+    const status = document.getElementById("authStatus");
+    if (status) status.innerText = data.message;
 }
 
 
 // -------------------- LOGOUT --------------------
 async function logout() {
+
     await fetch("http://127.0.0.1:5000/auth/logout", {
         method: "POST",
         credentials: "include"
@@ -47,8 +51,9 @@ async function logout() {
 }
 
 
-// -------------------- SESSION CHECK (SAFE VERSION) --------------------
+// -------------------- SESSION CHECK --------------------
 async function checkLogin() {
+
     try {
         const res = await fetch("http://127.0.0.1:5000/auth/me", {
             credentials: "include"
@@ -58,12 +63,14 @@ async function checkLogin() {
 
         if (!data.logged_in) {
             window.location.href = "/login.html";
-        } else {
-            const userBox = document.getElementById("userInfo");
-            if (userBox) {
-                userBox.innerText = `Logged in as: ${data.user}`;
-            }
+            return;
         }
+
+        const userBox = document.getElementById("userInfo");
+        if (userBox) {
+            userBox.innerText = `Logged in as: ${data.user}`;
+        }
+
     } catch (err) {
         console.error("Session check failed:", err);
         window.location.href = "/login.html";

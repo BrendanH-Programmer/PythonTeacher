@@ -2,9 +2,6 @@ from backend.users.user_store import get_user, add_user
 
 
 def register_user(username):
-    """
-    Registers a new user (username only system)
-    """
 
     if get_user(username):
         return {
@@ -27,9 +24,6 @@ def register_user(username):
 
 
 def login_user(username):
-    """
-    Logs in an existing user
-    """
 
     user = get_user(username)
 
@@ -41,8 +35,5 @@ def login_user(username):
 
     return {
         "success": True,
-        "message": "Login successful",
-        "user": {
-            "username": username
-        }
+        "message": "Login successful"
     }

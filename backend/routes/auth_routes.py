@@ -9,6 +9,7 @@ auth_bp = Blueprint("auth", __name__)
 # -------------------
 @auth_bp.route("/register", methods=["POST"])
 def register():
+
     data = request.get_json()
     username = data.get("username")
 
@@ -19,6 +20,11 @@ def register():
         }), 400
 
     result = register_user(username)
+
+    # AUTO LOGIN AFTER REGISTER (IMPORTANT FIX)
+    if result["success"]:
+        session["user"] = username
+
     return jsonify(result)
 
 
@@ -27,6 +33,7 @@ def register():
 # -------------------
 @auth_bp.route("/login", methods=["POST"])
 def login():
+
     data = request.get_json()
     username = data.get("username")
 
@@ -39,10 +46,11 @@ def login():
 
 
 # -------------------
-# CURRENT USER CHECK (VERY IMPORTANT FOR FRONTEND)
+# CURRENT USER
 # -------------------
 @auth_bp.route("/me", methods=["GET"])
 def me():
+
     user = session.get("user")
 
     if not user:
@@ -59,6 +67,7 @@ def me():
 # -------------------
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
+
     session.clear()
 
     return jsonify({

@@ -74,7 +74,7 @@ def save_progress():
     progress["last_lesson"] = lesson_id
     progress["last_section"] = section
 
-    # ONLY mark complete if review reached
+    # mark complete only on review
     if section == "review":
         if lesson_id not in progress["completed_lessons"]:
             progress["completed_lessons"].append(lesson_id)
@@ -85,75 +85,23 @@ def save_progress():
 
 
 # -------------------------
-# USER PROGRESS
+# UNLOCK LOGIC (single source)
 # -------------------------
-@lesson_bp.route("/user/progress", methods=["GET"])
-def user_progress():
+def is_lesson_unlocked(completed, lesson_id):
 
-    username = session.get("user")
-
-    if not username:
-        return jsonify({"success": False}), 401
-
-    users = load_users()
-    user = users.get(username, {})
-
-    progress = user.get("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
-        "completed_lessons": []
-    })
-
-    return jsonify({
-        "success": True,
-        "progress": progress
-    })
-
-
-# -------------------------
-# UNLOCK LOGIC
-# -------------------------
-def is_lesson_unlocked(username, lesson_id):
-
-    users = load_users()
-    user = users.get(username)
-
-    if not user:
-        return lesson_id == 1
-
-    progress = user.get("progress", {})
-    completed = set(map(int, progress.get("completed_lessons", [])))
-
-    # lesson 1 always unlocked
     if lesson_id == 1:
         return True
 
-    # STRICT RULE: must complete previous lesson
     return (lesson_id - 1) in completed
 
 
 # -------------------------
-# LESSON STATUS
+# BUILD LESSON STATUS (shared logic)
 # -------------------------
-@lesson_bp.route("/user/lesson-status", methods=["GET"])
-def lesson_status():
-
-    username = session.get("user")
-
-    if not username:
-        return jsonify({"success": False}), 401
-
-    users = load_users()
-    user = users.get(username, {})
-
-    progress = user.get("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
-        "completed_lessons": []
-    })
+def build_lesson_status(progress):
 
     completed = set(map(int, progress.get("completed_lessons", [])))
-    last_lesson = progress.get("last_lesson", 1)
+    last_lesson = int(progress.get("last_lesson", 1))
 
     lessons_status = []
 
@@ -162,8 +110,8 @@ def lesson_status():
         lesson_id = int(lesson_id)
 
         is_completed = lesson_id in completed
-        is_unlocked = lesson_id == 1 or (lesson_id - 1) in completed
-        is_current = lesson_id == last_lesson and not is_completed
+        is_unlocked = is_lesson_unlocked(completed, lesson_id)
+        is_current = (lesson_id == last_lesson and not is_completed)
 
         lessons_status.append({
             "id": lesson_id,
@@ -173,8 +121,4 @@ def lesson_status():
             "current": is_current
         })
 
-    return jsonify({
-        "success": True,
-        "progress": progress,
-        "lessons": lessons_status
-    })
+    return lessons_status

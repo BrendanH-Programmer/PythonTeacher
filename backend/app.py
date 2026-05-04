@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from backend.routes.auth_routes import auth_bp
 from backend.routes.lesson_routes import lesson_bp
+from backend.routes.user_routes import user_bp
 
 app = Flask(__name__, static_folder="../frontend")
 
@@ -15,7 +16,7 @@ print("Flask app created")
 # ROUTES
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(lesson_bp, url_prefix="/api")
-
+app.register_blueprint(user_bp, url_prefix="/user")
 
 @app.route("/")
 def home():
