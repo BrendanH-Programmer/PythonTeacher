@@ -28,57 +28,81 @@
 <script>
 async function loadDashboard() {
 
-    await checkLogin();
+await checkLogin();
 
-    const res = await fetch("http://127.0.0.1:5000/api/user/lesson-status", {
-        credentials: "include"
-    });
+const res = await fetch("http://127.0.0.1:5000/api/user/dashboard", {
+    credentials: "include"
+});
 
-    const data = await res.json();
+const data = await res.json();
 
-    if (!data.success) return;
+if (!data.success) return;
 
-    const container = document.getElementById("lessonList");
-    container.innerHTML = "";
+const lessons = data.lessons;
+const nextLesson = data.next_lesson;
 
-    data.lessons.forEach(l => {
+const container = document.getElementById("lessonList");
+const continueBox = document.getElementById("continueBox");
 
-        const card = document.createElement("div");
-        card.className = "lesson-card";
+container.innerHTML = "";
+continueBox.innerHTML = "";
 
-        let statusText = "";
+// -------------------------
+// ✅ CONTINUE BUTTON (NEW)
+// -------------------------
+if (nextLesson) {
 
-        // PURE BACKEND TRUTH ONLY
-        if (l.completed) {
-            statusText = "✅ Completed";
+    continueBox.innerHTML = `
+        <div class="continue-card">
+            <h2>Continue Learning</h2>
+            <button onclick="openLesson(${nextLesson})">
+                Continue Lesson ${nextLesson}
+            </button>
+        </div>
+    `;
+}
+
+// -------------------------
+// LESSON LIST
+// -------------------------
+lessons.forEach(l => {
+
+    const card = document.createElement("div");
+    card.className = "lesson-card";
+
+    let statusText = "";
+    let actionText = "";
+
+    if (l.completed) {
+        statusText = "✅ Completed";
+        actionText = "Review";
+    }
+    else if (l.unlocked) {
+        statusText = l.current ? "▶ Continue Learning" : "🟢 Available";
+        actionText = l.current ? "Continue" : "Start";
+    }
+    else {
+        statusText = "🔒 Locked";
+    }
+
+    card.innerHTML = `
+        <h3>${l.title}</h3>
+        <p>${statusText}</p>
+        ${l.unlocked
+            ? `<button onclick="openLesson(${l.id})">${actionText}</button>`
+            : ""
         }
-        else if (l.current) {
-            statusText = "▶ Continue Learning";
-        }
-        else if (l.unlocked) {
-            statusText = "🟢 Available";
-        }
-        else {
-            statusText = "🔒 Locked";
-        }
+    `;
 
-        card.innerHTML = `
-            <h3>${l.title}</h3>
-            <p>${statusText}</p>
-            ${l.unlocked ? `
-                <button onclick="openLesson(${l.id})">
-                    ${l.completed ? "Review" : (l.current ? "Continue" : "Start")}
-                </button>
-            ` : ""}
-        `;
+    container.appendChild(card);
+});
 
-        container.appendChild(card);
-    });
 }
 
 function openLesson(id) {
-    window.location.href = `/lesson.html?id=${id}`;
+window.location.href = `/lesson.html?id=${id}`;
 }
+
 </script>
 
 </body>

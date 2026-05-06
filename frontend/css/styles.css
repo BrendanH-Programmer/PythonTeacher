@@ -1,89 +1,186 @@
+/* -------------------------
+   GLOBAL THEME
+--------------------------*/
 body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #0b1220;
+    color: #e5e7eb;
     margin: 0;
-    padding: 20px;
+    padding: 24px;
 }
 
+/* layout */
 .container {
-    max-width: 900px;
+    max-width: 920px;
     margin: auto;
 }
 
-.card {
-    background: #1e293b;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 10px;
+/* -------------------------
+   TYPOGRAPHY
+--------------------------*/
+h1, h2, h3 {
+    color: #f8fafc;
+    letter-spacing: -0.3px;
 }
 
-textarea {
-    width: 100%;
-    height: 120px;
-    margin: 10px 0;
+p {
+    color: #cbd5e1;
+    line-height: 1.6;
 }
 
-input, select {
-    padding: 10px;
-    width: 100%;
-    margin: 10px 0;
+/* -------------------------
+   CARDS (LESSONS / PANELS)
+--------------------------*/
+.card,
+.lesson-card,
+.continue-card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    padding: 18px;
+    margin: 14px 0;
+    border-radius: 14px;
+    transition: all 0.2s ease;
 }
 
+.card:hover,
+.lesson-card:hover {
+    transform: translateY(-2px);
+    border-color: #334155;
+}
+
+/* lesson card text */
+.lesson-card h3 {
+    margin: 0 0 6px 0;
+    color: #f9fafb;
+}
+
+.lesson-card p {
+    margin: 0 0 10px 0;
+    color: #94a3b8;
+}
+
+/* -------------------------
+   BUTTONS (GLOBAL SYSTEM)
+--------------------------*/
 button {
-    padding: 10px 15px;
-    margin-right: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
     cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s ease;
+    background: #2563eb;
+    color: white;
 }
 
+button:hover {
+    background: #1d4ed8;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* secondary buttons (Back / Exit etc) */
+.top-bar button,
+.row button:first-child {
+    background: #1f2937;
+    color: #e5e7eb;
+}
+
+.top-bar button:hover,
+.row button:first-child:hover {
+    background: #374151;
+}
+
+/* -------------------------
+   LAYOUT HELPERS
+--------------------------*/
 .row {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
 }
 
 .hidden {
     display: none;
 }
 
+/* -------------------------
+   FORM ELEMENTS
+--------------------------*/
+textarea,
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e5e7eb;
+    outline: none;
+}
+
+textarea:focus,
+input:focus {
+    border-color: #3b82f6;
+}
+
+/* -------------------------
+   TABLES
+--------------------------*/
 table {
     width: 100%;
     border-collapse: collapse;
 }
 
 td, th {
-    border: 1px solid #334155;
+    border: 1px solid #1f2937;
     padding: 8px;
+    color: #cbd5e1;
 }
 
-.lesson-card {
-    background: #1e293b; /* match your card theme */
+/* -------------------------
+   CONTINUE CARD (HOME)
+--------------------------*/
+.continue-card {
+    text-align: center;
+    background: linear-gradient(135deg, #111827, #0f172a);
+}
+
+.continue-card button {
+    margin-top: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+}
+
+/* -------------------------
+   TOP BAR
+--------------------------*/
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+/* -------------------------
+   RESUME BOX (FIXED STYLE)
+--------------------------*/
+.resume-box {
+    background: #0f172a;
     border: 1px solid #334155;
-    padding: 15px;
-    margin: 10px 0;
+    border-left: 4px solid #3b82f6;
+    padding: 12px;
+    margin-bottom: 16px;
     border-radius: 10px;
-    color: white;
 }
 
-.lesson-card h3 {
-    margin: 0 0 5px 0;
-    color: #f1f5f9;
+.resume-box p {
+    margin: 0;
+    color: #cbd5e1;
 }
 
-.lesson-card p {
-    margin: 5px 0 10px 0;
-    font-weight: bold;
-    color: #94a3b8; /* softer text */
-}
-
-.lesson-card button {
-    padding: 8px 12px;
-    cursor: pointer;
+.resume-box button {
+    margin-top: 10px;
     background: #3b82f6;
-    border: none;
-    border-radius: 6px;
-    color: white;
-}
-
-.lesson-card button:hover {
-    background: #2563eb;
 }

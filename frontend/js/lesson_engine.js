@@ -1,6 +1,8 @@
 let currentLesson = 1;
 let currentSectionIndex = 0;
 
+let lessonProgress = {}; // per-lesson progress map
+
 const sectionsOrder = [
     "intro",
     "outcomes",
@@ -11,20 +13,23 @@ const sectionsOrder = [
 
 
 // -------------------------
-// INIT FROM URL (NOW BACKEND-DRIVEN)
+// INIT LESSON
 // -------------------------
 async function initLessonFromURL() {
 
     await checkLogin();
 
     const params = new URLSearchParams(window.location.search);
-    const id = parseInt(params.get("id"));
+    const id = Number(params.get("id"));
 
     if (!id) {
         window.location.href = "/index.html";
         return;
     }
 
+    // -------------------------
+    // GET LESSON ACCESS
+    // -------------------------
     const res = await fetch("http://127.0.0.1:5000/api/user/lesson-status", {
         credentials: "include"
     });
@@ -39,21 +44,22 @@ async function initLessonFromURL() {
         return;
     }
 
-    // SET LESSON
     currentLesson = id;
+    currentSectionIndex = 0;
 
-    // OPTIONAL: resume last section if available
+    // -------------------------
+    // LOAD PROGRESS (SAFE)
+    // -------------------------
     const progressRes = await fetch("http://127.0.0.1:5000/api/user/progress", {
         credentials: "include"
     });
 
     const progressData = await progressRes.json();
 
-    const lastSection = progressData.progress?.last_section;
-
-    const idx = sectionsOrder.indexOf(lastSection);
-
-    currentSectionIndex = idx !== -1 ? idx : 0;
+    lessonProgress = Object.fromEntries(
+        Object.entries(progressData.progress?.lessons || {})
+            .map(([k, v]) => [String(k), v])
+    );
 
     await loadSection();
 }
@@ -83,13 +89,38 @@ async function loadSection() {
     const content = data.data;
 
     if (nav) nav.style.display = "flex";
-
     tutor.classList.add("hidden");
 
+    // -------------------------
+    // INTRO + RESUME (FIXED)
+    // -------------------------
     if (section === "intro") {
-        box.innerHTML = `<p>${content.content}</p>`;
+
+        const savedSection = lessonProgress[String(currentLesson)];
+
+        let resumeUI = "";
+
+        if (savedSection && savedSection !== "intro") {
+
+            resumeUI = `
+                <div class="resume-box">
+                    <p>You previously reached: <strong>${savedSection.toUpperCase()}</strong></p>
+                    <button onclick="jumpToSection('${savedSection}')">
+                        Jump to where I left off
+                    </button>
+                </div>
+            `;
+        }
+
+        box.innerHTML = `
+            ${resumeUI}
+            <p>${content.content}</p>
+        `;
     }
 
+    // -------------------------
+    // OUTCOMES
+    // -------------------------
     if (section === "outcomes") {
         box.innerHTML = `
             <ul>
@@ -98,6 +129,9 @@ async function loadSection() {
         `;
     }
 
+    // -------------------------
+    // DEMO
+    // -------------------------
     if (section === "demo") {
         box.innerHTML = `
             <pre>${content.code}</pre>
@@ -105,11 +139,17 @@ async function loadSection() {
         `;
     }
 
+    // -------------------------
+    // PRACTICE
+    // -------------------------
     if (section === "practice") {
         tutor.classList.remove("hidden");
         box.innerHTML = `<p>${content.task}</p>`;
     }
 
+    // -------------------------
+    // REVIEW
+    // -------------------------
     if (section === "review") {
 
         if (nav) nav.style.display = "none";
@@ -120,25 +160,12 @@ async function loadSection() {
             <button onclick="finishLesson()">Finish Lesson</button>
         `;
     }
+    updateNavButtons();
 }
 
 
 // -------------------------
-// NEXT SECTION
-// -------------------------
-async function nextSection() {
-
-    await markProgress();
-
-    if (currentSectionIndex < sectionsOrder.length - 1) {
-        currentSectionIndex++;
-        await loadSection();
-    }
-}
-
-
-// -------------------------
-// SAVE PROGRESS (SAFE)
+// SAVE PROGRESS
 // -------------------------
 async function markProgress() {
 
@@ -153,6 +180,22 @@ async function markProgress() {
             section
         })
     });
+
+    lessonProgress[String(currentLesson)] = section;
+}
+
+
+// -------------------------
+// NEXT SECTION
+// -------------------------
+async function nextSection() {
+
+    await markProgress();
+
+    if (currentSectionIndex < sectionsOrder.length - 1) {
+        currentSectionIndex++;
+        await loadSection();
+    }
 }
 
 
@@ -172,4 +215,62 @@ async function finishLesson() {
     });
 
     window.location.href = "/index.html";
+}
+
+
+// -------------------------
+// EXIT LESSON (IMPORTANT FIX)
+// -------------------------
+async function exitLesson() {
+
+    await markProgress(); // ensures backend is updated first
+    window.location.href = "/index.html";
+}
+
+
+// -------------------------
+// JUMP TO SECTION
+// -------------------------
+function jumpToSection(sectionName) {
+
+    const idx = sectionsOrder.indexOf(sectionName);
+
+    if (idx !== -1) {
+        currentSectionIndex = idx;
+        loadSection();
+    }
+}
+
+// -------------------------
+// PREVIOUS SECTION
+// -------------------------
+async function prevSection() {
+
+    if (currentSectionIndex <= 0) return;
+
+    currentSectionIndex--;
+    await loadSection();
+}
+
+// -------------------------
+// UPDATE NAV BUTTON VISIBILITY
+// -------------------------
+function updateNavButtons() {
+
+    const backBtn = document.querySelector(".row button:nth-child(1)");
+    const nextBtn = document.querySelector(".row button:nth-child(2)");
+
+    // Hide Back on first section
+    if (currentSectionIndex === 0) {
+        backBtn.style.display = "none";
+    } else {
+        backBtn.style.display = "inline-block";
+    }
+
+    // Hide Next on last section (optional but recommended)
+    if (currentSectionIndex === sectionsOrder.length - 1) {
+        nextBtn.style.display = "none";
+    } else {
+        nextBtn.style.display = "inline-block";
+    }
 }

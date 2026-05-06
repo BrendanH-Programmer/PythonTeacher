@@ -12,14 +12,12 @@ def get_progress(username):
 
     if not user:
         return {
-            "last_lesson": 1,
-            "last_section": "intro",
+            "lessons": {},
             "completed_lessons": []
         }
 
     return user.get("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
+        "lessons": {},
         "completed_lessons": []
     })
 
@@ -36,22 +34,25 @@ def update_progress(username, lesson_id, section):
 
     user = users[username]
 
-    progress = user.setdefault("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
-        "completed_lessons": []
-    })
+    progress = user.setdefault("progress", {})
 
-    progress["last_lesson"] = lesson_id
-    progress["last_section"] = section
+    # 🔥 SAFE INITIALISATION (IMPORTANT FIX)
+    if "lessons" not in progress:
+        progress["lessons"] = {}
 
+    if "completed_lessons" not in progress:
+        progress["completed_lessons"] = []
+
+    # store per-lesson progress
+    progress["lessons"][str(lesson_id)] = section
+
+    # completion logic
     if section == "review":
         if lesson_id not in progress["completed_lessons"]:
             progress["completed_lessons"].append(lesson_id)
 
     save_users(users)
     return True
-
 
 # -------------------------
 # UNLOCK LOGIC (ONLY SOURCE OF TRUTH)
