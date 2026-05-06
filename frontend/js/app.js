@@ -1,67 +1,77 @@
 let hintLevel = 1;
 
-async function sendCode(reset = true) {
+// -------------------------
+// MAIN AI ANALYSIS
+// -------------------------
+async function sendCode() {
+
     const code = document.getElementById("codeInput").value;
     const responseBox = document.getElementById("responseBox");
     const tableBody = document.getElementById("errorTable");
 
-    if (reset) hintLevel = 1;
+    if (!code.trim()) {
+        responseBox.innerText = "⚠️ Please enter some code first.";
+        return;
+    }
 
-    responseBox.innerText = "Running analysis...";
+    responseBox.innerText = "⏳ Analysing...";
 
     try {
-        const res = await fetch("http://127.0.0.1:5000/chat", {
+        const res = await fetch("http://127.0.0.1:5000/api/ai/analyse", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             credentials: "include",
-            body: JSON.stringify({
-                code,
-                hint_level: hintLevel
-            })
+            body: JSON.stringify({ code })
         });
 
         const data = await res.json();
 
-        // -------------------
-        // HINT OUTPUT
-        // -------------------
+        if (!data.success) {
+            responseBox.innerText = "❌ Error analysing code.";
+            return;
+        }
+
+        // -------------------------
+        // OUTPUT (AI)
+        // -------------------------
         responseBox.innerText =
-            `Hint Level ${hintLevel}:\n\n` +
-            (data.hint || "No hint returned");
+            "🧠 Feedback:\n\n" +
+            data.feedback +
+            "\n\n💡 Suggestion:\n" +
+            data.suggestion;
 
-        // -------------------
-        // ERROR TABLE
-        // -------------------
-        tableBody.innerHTML = "";
-
-        if (data.errors && data.errors.length > 0) {
-
-            data.errors.forEach(err => {
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${err.error_type || "Unknown"}</td>
-                    <td>${err.priority ?? "-"}</td>
-                    <td>${err.message || "No message"}</td>
-                `;
-
-                tableBody.appendChild(row);
-            });
-
-        } else {
+        // -------------------------
+        // OPTIONAL ERROR TABLE RESET
+        // -------------------------
+        if (tableBody) {
             tableBody.innerHTML =
-                "<tr><td colspan='3'>No errors detected</td></tr>";
+                "<tr><td colspan='3'>AI analysis complete</td></tr>";
         }
 
     } catch (error) {
         console.error(error);
-        responseBox.innerText = "Error connecting to server.";
+        responseBox.innerText = "❌ Server error.";
     }
 }
 
+
+// -------------------------
+// OPTIONAL: NEXT HINT (extend later)
+// -------------------------
 function nextHint() {
     hintLevel = Math.min(hintLevel + 1, 3);
-    sendCode(false);
+    sendCode();
+}
+
+
+// -------------------------
+// NAVIGATION
+// -------------------------
+function updateNavButtons() {
+    const nextBtn = document.getElementById("nextBtn");
+    const finishBtn = document.getElementById("finishBtn");
+
+    // Add logic later
 }

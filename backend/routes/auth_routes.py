@@ -21,9 +21,9 @@ def register():
 
     result = register_user(username)
 
-    # AUTO LOGIN AFTER REGISTER (IMPORTANT FIX)
+    # AUTO LOGIN AFTER REGISTER
     if result["success"]:
-        session["user"] = username
+        session["username"] = username
 
     return jsonify(result)
 
@@ -40,7 +40,7 @@ def login():
     result = login_user(username)
 
     if result["success"]:
-        session["user"] = username
+        session["username"] = username
 
     return jsonify(result)
 
@@ -51,7 +51,7 @@ def login():
 @auth_bp.route("/me", methods=["GET"])
 def me():
 
-    user = session.get("user")
+    user = session.get("username")
 
     if not user:
         return jsonify({"logged_in": False})
