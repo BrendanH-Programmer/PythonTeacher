@@ -16,7 +16,7 @@ print("Flask app created")
 # ROUTES
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(lesson_bp, url_prefix="/api")
-app.register_blueprint(user_bp, url_prefix="/user")
+app.register_blueprint(user_bp, url_prefix="/api")   # ✅ FIXED
 
 @app.route("/")
 def home():

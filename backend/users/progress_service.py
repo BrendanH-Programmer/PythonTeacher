@@ -54,11 +54,9 @@ def update_progress(username, lesson_id, section):
 
 
 # -------------------------
-# UNLOCK LOGIC
+# UNLOCK LOGIC (ONLY SOURCE OF TRUTH)
 # -------------------------
-def is_lesson_unlocked(progress, lesson_id):
-
-    completed = set(map(int, progress.get("completed_lessons") or []))
+def is_unlocked(completed, lesson_id):
 
     if lesson_id == 1:
         return True
@@ -67,11 +65,11 @@ def is_lesson_unlocked(progress, lesson_id):
 
 
 # -------------------------
-# BUILD LESSON STATUS
+# BUILD LESSON STATUS (FRONTEND READY)
 # -------------------------
 def build_lesson_status(progress):
 
-    completed = set(map(int, progress.get("completed_lessons") or []))
+    completed = set(map(int, progress.get("completed_lessons", [])))
     last_lesson = int(progress.get("last_lesson", 1))
 
     lessons_status = []
@@ -81,18 +79,14 @@ def build_lesson_status(progress):
         lesson_id = int(lesson_id)
 
         is_completed = lesson_id in completed
-        is_unlocked = is_lesson_unlocked(progress, lesson_id)
-
-        is_current = (
-            lesson_id == last_lesson
-            and lesson_id not in completed
-        )
+        unlocked = is_unlocked(completed, lesson_id)
+        is_current = (lesson_id == last_lesson and not is_completed)
 
         lessons_status.append({
             "id": lesson_id,
             "title": lesson["title"],
             "completed": is_completed,
-            "unlocked": is_unlocked,
+            "unlocked": unlocked,
             "current": is_current
         })
 

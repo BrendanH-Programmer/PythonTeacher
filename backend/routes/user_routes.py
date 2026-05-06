@@ -1,13 +1,10 @@
 from flask import Blueprint, jsonify, session
 from backend.users.user_store import load_users
-from backend.users.progress_service import build_lesson_status
+from backend.users.progress_service import get_progress, build_lesson_status
 
 user_bp = Blueprint("user", __name__)
 
 
-# -------------------------
-# GET CURRENT USER PROGRESS (RAW)
-# -------------------------
 @user_bp.route("/user/progress", methods=["GET"])
 def user_progress():
 
@@ -16,32 +13,12 @@ def user_progress():
     if not username:
         return jsonify({"success": False}), 401
 
-    users = load_users()
-    user = users.get(username)
-
-    if not user:
-        return jsonify({
-            "success": True,
-            "progress": {
-                "last_lesson": 1,
-                "last_section": "intro",
-                "completed_lessons": []
-            }
-        })
-
     return jsonify({
         "success": True,
-        "progress": user.get("progress", {
-            "last_lesson": 1,
-            "last_section": "intro",
-            "completed_lessons": []
-        })
+        "progress": get_progress(username)
     })
 
 
-# -------------------------
-# LESSON STATUS (PRIMARY FRONTEND ENDPOINT)
-# -------------------------
 @user_bp.route("/user/lesson-status", methods=["GET"])
 def lesson_status():
 
@@ -50,14 +27,7 @@ def lesson_status():
     if not username:
         return jsonify({"success": False}), 401
 
-    users = load_users()
-    user = users.get(username, {})
-
-    progress = user.get("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
-        "completed_lessons": []
-    })
+    progress = get_progress(username)
 
     return jsonify({
         "success": True,
@@ -66,9 +36,6 @@ def lesson_status():
     })
 
 
-# -------------------------
-# DASHBOARD (optional but useful)
-# -------------------------
 @user_bp.route("/user/dashboard", methods=["GET"])
 def dashboard():
 
@@ -77,15 +44,7 @@ def dashboard():
     if not username:
         return jsonify({"success": False}), 401
 
-    users = load_users()
-    user = users.get(username, {})
-
-    progress = user.get("progress", {
-        "last_lesson": 1,
-        "last_section": "intro",
-        "completed_lessons": []
-    })
-
+    progress = get_progress(username)
     lessons = build_lesson_status(progress)
 
     next_lesson = next(

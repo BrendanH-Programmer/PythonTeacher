@@ -25,7 +25,6 @@
 
 <script src="js/auth.js"></script>
 
-
 <script>
 async function loadDashboard() {
 
@@ -39,28 +38,25 @@ async function loadDashboard() {
 
     if (!data.success) return;
 
-    const lessons = data.lessons;
-
     const container = document.getElementById("lessonList");
     container.innerHTML = "";
 
-    lessons.forEach(l => {
+    data.lessons.forEach(l => {
 
         const card = document.createElement("div");
         card.className = "lesson-card";
 
         let statusText = "";
-        let actionText = "";
 
-        // ✅ FIXED PRIORITY LOGIC
-
+        // PURE BACKEND TRUTH ONLY
         if (l.completed) {
             statusText = "✅ Completed";
-            actionText = "Review";
         }
-        else if (l.unlocked && !l.completed) {
-            statusText = l.current ? "▶ Continue Learning" : "🟢 Available";
-            actionText = l.current ? "Continue" : "Start";
+        else if (l.current) {
+            statusText = "▶ Continue Learning";
+        }
+        else if (l.unlocked) {
+            statusText = "🟢 Available";
         }
         else {
             statusText = "🔒 Locked";
@@ -69,10 +65,11 @@ async function loadDashboard() {
         card.innerHTML = `
             <h3>${l.title}</h3>
             <p>${statusText}</p>
-            ${l.unlocked
-                ? `<button onclick="openLesson(${l.id})">${actionText}</button>`
-                : ""
-            }
+            ${l.unlocked ? `
+                <button onclick="openLesson(${l.id})">
+                    ${l.completed ? "Review" : (l.current ? "Continue" : "Start")}
+                </button>
+            ` : ""}
         `;
 
         container.appendChild(card);
