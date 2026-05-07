@@ -1,6 +1,18 @@
 let hintLevel = 0;
 let lastCode = "";
 
+function updateHintUI() {
+    const hintInfo = document.getElementById("hintInfo");
+
+    if (hintInfo) {
+        if (hintLevel === 0) {
+            hintInfo.innerText = "";
+        } else {
+            hintInfo.innerText = `Hint ${hintLevel}/3 used`;
+        }
+    }
+}
+
 async function sendCode(getHint = false) {
 
     const code = document.getElementById("codeInput").value;
@@ -15,6 +27,7 @@ async function sendCode(getHint = false) {
     if (code !== lastCode) {
         hintLevel = 0;
         lastCode = code;
+        updateHintUI();
 
         // reset hint button when code changes
         if (hintButton) hintButton.disabled = false;
@@ -29,6 +42,8 @@ async function sendCode(getHint = false) {
         hintButton.disabled = true;
     }
 
+    updateHintUI();
+    
     responseBox.innerText = "⏳ Analysing...";
 
     const res = await fetch("http://127.0.0.1:5000/api/ai/analyse", {
@@ -57,6 +72,7 @@ async function sendCode(getHint = false) {
             `✅ Well done Brendan!\n\n${data.message}\n\nClick Hint for extra improvement tips!`;
 
         hintLevel = 0;
+        updateHintUI();
         return;
     }
 
