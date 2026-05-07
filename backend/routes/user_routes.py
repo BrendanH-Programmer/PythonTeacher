@@ -8,7 +8,7 @@ user_bp = Blueprint("user", __name__)
 @user_bp.route("/user/progress", methods=["GET"])
 def user_progress():
 
-    username = session.get("user")
+    username = session.get("username")
 
     if not username:
         return jsonify({"success": False}), 401
@@ -22,7 +22,7 @@ def user_progress():
 @user_bp.route("/user/lesson-status", methods=["GET"])
 def lesson_status():
 
-    username = session.get("user")
+    username = session.get("username")
 
     if not username:
         return jsonify({"success": False}), 401
@@ -39,7 +39,7 @@ def lesson_status():
 @user_bp.route("/user/dashboard", methods=["GET"])
 def dashboard():
 
-    username = session.get("user")
+    username = session.get("username")
 
     if not username:
         return jsonify({"success": False}), 401

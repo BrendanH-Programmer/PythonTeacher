@@ -1,62 +1,117 @@
 import os
-from openai import OpenAI, api_key
+import ast
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def analyse_code(code):
+def is_valid_python(code):
+    try:
+        ast.parse(code)
+        return True
+    except:
+        return False
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+
+def analyse_code(code, hint_level=0, username="Student"):
+
+    syntax_ok = is_valid_python(code)
+
+    # -------------------------
+    # HARD CORRECTNESS CHECK
+    # -------------------------
+    if syntax_ok and "if" in code and ":" in code:
+        # VERY BASIC heuristic example
+        # (you can expand later with AST logic trees)
+        is_probably_correct = True
+    else:
+        is_probably_correct = False
+
+    # -------------------------
+    # IF CORRECT → RETURN EARLY
+    # -------------------------
+    if is_probably_correct and hint_level == 0:
         return {
-            "feedback": "API key not found.",
-            "suggestion": "Check your .env file and load_dotenv()."
+            "correct": True,
+            "message": f"Well done {username}, your code looks correct!",
+            "hint": ""
         }
 
-    client = OpenAI(api_key=api_key)
+    # -------------------------
+    # FORCE DIFFERENT BEHAVIOUR PER LEVEL
+    # -------------------------
 
-    prompt = f"""
-You are a Python tutor helping a beginner.
-
-Analyse this code:
-
-{code}
+    if hint_level == 0:
+        style = f"""
+You are a STRICT tutor.
 
 Rules:
-- Be clear and simple
-- Do NOT overwhelm
-- Give short explanation
-- Then give 1 improvement suggestion
+- ONLY say if correct or incorrect
+- If correct: "Well done {username}"
+- If incorrect: "Ooo {username}, there is a mistake somewhere"
+- NO explanation
+"""
 
-Format EXACTLY like:
+    elif hint_level == 1:
+        style = f"""
+You are a gentle tutor.
 
-Feedback: <your feedback>
-Suggestion: <your suggestion>
+Rules:
+- Give ONLY a vague hint
+- Example style: "mmm {username}, something feels off..."
+- DO NOT mention operators or exact bug
+"""
+
+    elif hint_level == 2:
+        style = f"""
+You are a guiding tutor.
+
+Rules:
+- Point at the AREA of the problem (logic / condition / structure)
+- DO NOT give fix
+- Encourage thinking
+"""
+
+    else:
+        style = f"""
+You are a strong tutor.
+
+Rules:
+- Ask a question that leads to the answer
+- Focus on reasoning about conditions
+"""
+
+    prompt = f"""
+{style}
+
+Code:
+{code}
+
+Return ONLY ONE short message.
+No JSON.
+No explanation outside message.
 """
 
     try:
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "You are a Python tutor."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8
         )
 
-        text = response.choices[0].message.content
-
-        feedback = ""
-        suggestion = ""
-
-        if "Suggestion:" in text:
-            parts = text.split("Suggestion:")
-            feedback = parts[0].replace("Feedback:", "").strip()
-            suggestion = parts[1].strip()
-        else:
-            feedback = text.strip()
+        message = response.choices[0].message.content.strip()
 
         return {
-            "feedback": feedback,
-            "suggestion": suggestion
+            "correct": False,
+            "message": message,
+            "hint_level": hint_level
         }
 
     except Exception as e:
         return {
-            "feedback": "Error analysing code.",
-            "suggestion": str(e)
+            "correct": False,
+            "message": f"Sorry {username}, I couldn't analyse your code."
         }

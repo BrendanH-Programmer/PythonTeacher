@@ -56,7 +56,7 @@ def get_lesson_section(lesson_id, section):
 def save_progress():
 
     data = request.get_json()
-    username = session.get("user")
+    username = session.get("username")
 
     if not username:
         return jsonify({"success": False}), 401
