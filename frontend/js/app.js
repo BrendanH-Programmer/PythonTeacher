@@ -43,7 +43,7 @@ async function sendCode(getHint = false) {
     }
 
     updateHintUI();
-    
+
     responseBox.innerText = "⏳ Analysing...";
 
     const res = await fetch("http://127.0.0.1:5000/api/ai/analyse", {
@@ -69,7 +69,7 @@ async function sendCode(getHint = false) {
     if (data.correct === true) {
 
         responseBox.innerText =
-            `✅ Well done Brendan!\n\n${data.message}\n\nClick Hint for extra improvement tips!`;
+            `Well done Brendan!\n\n${data.message}\n\nClick Hint for extra improvement tips!`;
 
         hintLevel = 0;
         updateHintUI();
@@ -80,7 +80,7 @@ async function sendCode(getHint = false) {
     // INCORRECT (AI RESPONSE ONLY)
     // -------------------------
     responseBox.innerText =
-        `❌ ${data.message}`;
+        `${data.message}`;
 }
 
 function nextHint() {

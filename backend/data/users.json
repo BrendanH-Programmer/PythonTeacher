@@ -1,15 +1,19 @@
 {
     "Brendan": {
         "progress": {
-            "last_lesson": 1,
-            "last_section": "intro",
+            "last_lesson": 2,
+            "last_section": "review",
             "completed_lessons": [
                 1,
-                2
+                2,
+                3,
+                4
             ],
             "lessons": {
-                "1": "demo",
-                "2": "review"
+                "1": "review",
+                "2": "review",
+                "3": "review",
+                "4": "review"
             }
         }
     }

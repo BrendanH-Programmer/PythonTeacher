@@ -33,7 +33,7 @@ def analyse_code(code, hint_level=0, username="Student"):
     if is_probably_correct and hint_level == 0:
         return {
             "correct": True,
-            "message": f"Well done {username}, your code looks correct!",
+            "message": f"Well done {username}, your code looks correct!\n\nClick next hint for potential imporvements or better understanding",
             "hint": ""
         }
 
@@ -47,7 +47,7 @@ You are a STRICT tutor.
 
 Rules:
 - ONLY say if correct or incorrect
-- If correct: "Well done {username}"
+- If correct: "Well done {username}\n\nClick next hint for potential imporvements or better understanding"
 - If incorrect: "Ooo {username}, there is a mistake somewhere"
 - NO explanation
 """
