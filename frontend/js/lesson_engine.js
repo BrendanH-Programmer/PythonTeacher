@@ -69,50 +69,82 @@ async function initLessonFromURL() {
     await loadSection();
 }
 
-
 // -------------------------
 // LOAD SECTION
 // -------------------------
 async function loadSection() {
 
-    const section = sectionsOrder[currentSectionIndex];
+    const section =
+        sectionsOrder[currentSectionIndex];
 
     const res = await fetch(
         `http://127.0.0.1:5000/api/lesson/${currentLesson}/section/${section}`,
-        { credentials: "include" }
+        {
+            credentials: "include"
+        }
     );
 
     const data = await res.json();
 
-    const box = document.getElementById("lessonContent");
-    const title = document.getElementById("lessonTitle");
-    const tutor = document.getElementById("tutorCard");
-    const nav = document.querySelector(".row");
+    const box =
+        document.getElementById("lessonContent");
 
-    title.innerText = `${data.lesson_title} - ${section.toUpperCase()}`;
+    const title =
+        document.getElementById("lessonTitle");
+
+    const tutor =
+        document.getElementById("tutorCard");
+
+    const nav =
+        document.querySelector(".row");
+
+    const backBtn =
+        document.getElementById("backBtn");
+
+    const nextBtn =
+        document.getElementById("nextBtn");
+
+    title.innerText =
+        `${data.lesson_title} - ${section.toUpperCase()}`;
 
     const content = data.data;
 
-    if (nav) nav.style.display = "flex";
     tutor.classList.add("hidden");
 
+    nav.style.display = "flex";
+
     // -------------------------
-    // INTRO + RESUME (FIXED)
+    // INTRO
     // -------------------------
     if (section === "intro") {
 
-        const savedSection = lessonProgress[String(currentLesson)];
+        const savedSection =
+            lessonProgress[String(currentLesson)];
 
         let resumeUI = "";
 
-        if (savedSection && savedSection !== "intro") {
+        if (
+            savedSection &&
+            savedSection !== "intro"
+        ) {
 
             resumeUI = `
                 <div class="resume-box">
-                    <p>You previously reached: <strong>${savedSection.toUpperCase()}</strong></p>
-                    <button onclick="jumpToSection('${savedSection}')">
+
+                    <p>
+                        You previously reached:
+                        <strong>
+                            ${savedSection.toUpperCase()}
+                        </strong>
+                    </p>
+
+                    <button
+                        onclick="jumpToSection('${savedSection}')">
+
                         Jump to where I left off
+
                     </button>
+
                 </div>
             `;
         }
@@ -127,9 +159,12 @@ async function loadSection() {
     // OUTCOMES
     // -------------------------
     if (section === "outcomes") {
+
         box.innerHTML = `
             <ul>
-                ${content.content.map(o => `<li>${o}</li>`).join("")}
+                ${content.content
+                    .map(o => `<li>${o}</li>`)
+                    .join("")}
             </ul>
         `;
     }
@@ -138,6 +173,7 @@ async function loadSection() {
     // DEMO
     // -------------------------
     if (section === "demo") {
+
         box.innerHTML = `
             <pre>${content.code}</pre>
             <p>${content.explanation}</p>
@@ -148,8 +184,12 @@ async function loadSection() {
     // PRACTICE
     // -------------------------
     if (section === "practice") {
+
         tutor.classList.remove("hidden");
-        box.innerHTML = `<p>${content.task}</p>`;
+
+        box.innerHTML = `
+            <p>${content.task}</p>
+        `;
     }
 
     // -------------------------
@@ -157,18 +197,52 @@ async function loadSection() {
     // -------------------------
     if (section === "review") {
 
-        if (nav) nav.style.display = "none";
+        nav.style.display = "none";
 
         box.innerHTML = `
-            <p>${content.summary}</p>
-            <h3>Lesson Complete ✓</h3>
-            <button onclick="finishLesson()">Finish Lesson</button>
+            <div class="card">
+
+                <h2>🎉 Lesson Complete</h2>
+
+                <p>
+                    ${content.summary}
+                </p>
+
+                <button onclick="finishLesson()">
+                    Finish Lesson
+                </button>
+
+            </div>
         `;
     }
-    updateNavButtons();
+
+    // -------------------------
+    // NAVIGATION VISIBILITY
+    // -------------------------
+
+    // Hide Back on intro
+    if (currentSectionIndex === 0) {
+
+        backBtn.style.display = "none";
+
+    } else {
+
+        backBtn.style.display = "inline-block";
+    }
+
+    // Hide all nav on review
+    if (section === "review") {
+
+        nav.style.display = "none";
+
+    } else {
+
+        nav.style.display = "flex";
+
+        nextBtn.style.display =
+            "inline-block";
+    }
 }
-
-
 // -------------------------
 // SAVE PROGRESS
 // -------------------------
@@ -275,27 +349,4 @@ async function prevSection() {
 
     currentSectionIndex--;
     await loadSection();
-}
-
-// -------------------------
-// UPDATE NAV BUTTON VISIBILITY
-// -------------------------
-function updateNavButtons() {
-
-    const backBtn = document.querySelector(".row button:nth-child(1)");
-    const nextBtn = document.querySelector(".row button:nth-child(2)");
-
-    // Hide Back on first section
-    if (currentSectionIndex === 0) {
-        backBtn.style.display = "none";
-    } else {
-        backBtn.style.display = "inline-block";
-    }
-
-    // Hide Next on last section (optional but recommended)
-    if (currentSectionIndex === sectionsOrder.length - 1) {
-        nextBtn.style.display = "none";
-    } else {
-        nextBtn.style.display = "inline-block";
-    }
 }
