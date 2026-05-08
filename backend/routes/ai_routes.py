@@ -13,13 +13,15 @@ def analyse():
     data = request.get_json()
     code = data.get("code", "")
     hint_level = data.get("hint_level", 0)
+    lesson_id = data.get("lesson_id") 
 
     username = session.get("username", "Student")
 
     result = analyse_code(
         code,
         hint_level=hint_level,
-        username=username
+        username=username,
+        lesson_id=lesson_id
     )
 
     return jsonify({

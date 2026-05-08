@@ -1,4 +1,5 @@
-let currentLesson = 1;
+let currentLesson = null;
+window.currentLessonId = null;
 let currentSectionIndex = 0;
 
 let lessonProgress = {}; // per-lesson progress map
@@ -19,6 +20,8 @@ async function initLessonFromURL() {
 
     await checkLogin();
 
+    lessonCompleted = false;
+
     const params = new URLSearchParams(window.location.search);
     const id = Number(params.get("id"));
 
@@ -30,6 +33,10 @@ async function initLessonFromURL() {
     // -------------------------
     // GET LESSON ACCESS
     // -------------------------
+    currentLesson = id;
+    window.currentLessonId = currentLesson;
+    currentSectionIndex = 0;
+
     const res = await fetch("http://127.0.0.1:5000/api/user/lesson-status", {
         credentials: "include"
     });
@@ -44,8 +51,6 @@ async function initLessonFromURL() {
         return;
     }
 
-    currentLesson = id;
-    currentSectionIndex = 0;
 
     // -------------------------
     // LOAD PROGRESS (SAFE)
@@ -190,14 +195,34 @@ async function markProgress() {
 // -------------------------
 async function nextSection() {
 
-    await markProgress();
+    const currentSection =
+        sectionsOrder[currentSectionIndex];
 
+    // -------------------------
+    // LOCK PRACTICE SECTION
+    // -------------------------
+    if (
+        currentSection === "practice" &&
+        !lessonCompleted
+    ) {
+
+        alert("⚠️ Complete the coding task before continuing.");
+        return;
+    }
+
+    // -------------------------
+    // MOVE TO NEXT SECTION
+    // -------------------------
     if (currentSectionIndex < sectionsOrder.length - 1) {
+
+        // save progress FIRST
+        await markProgress();
+
         currentSectionIndex++;
+
         await loadSection();
     }
 }
-
 
 // -------------------------
 // FINISH LESSON

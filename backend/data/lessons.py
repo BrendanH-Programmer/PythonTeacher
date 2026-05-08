@@ -3,45 +3,38 @@ LESSONS = {
     1: {
         "title": "Python Basics",
         "order": 1,
+        "validation_rule": "must use print()",
         "sections": {
-
             "intro": {
                 "content": (
-                    "Welcome to Python! Python is one of the most beginner-friendly programming languages in the world. "
-                    "It is used in web development, artificial intelligence, data science, and automation. "
-                    "In this lesson, you will learn how Python communicates information using output."
+                    "Welcome to Python! Python is widely used in web development, AI, data science and automation. "
+                    "In this lesson you will learn how programs display output to the screen."
                 )
             },
-
             "outcomes": {
                 "content": [
-                    "Understand what Python is used for in the real world",
-                    "Learn how to display output using print()",
-                    "Understand that code runs line by line"
+                    "Understand what Python is used for",
+                    "Learn how programs display output",
+                    "Understand code runs top to bottom"
                 ]
             },
-
             "demo": {
-                "code": 'print("Hello World")',
+                "code": "In Python, we use a built-in function to show information on the screen.",
                 "explanation": (
-                    "The print() function is one of the most important starting tools in Python. "
-                    "It sends information from your program to the screen so the user can see it. "
-                    "In this example, we are printing the text 'Hello World'. "
-                    "Text must always be placed inside quotation marks, and print must use parentheses."
+                    "Programs run instructions step by step from top to bottom. "
+                    "When we want the user to see something, we use a special built-in tool called a function. "
+                    "Functions take information inside brackets and display results or perform actions. "
+                    "In this lesson, you will explore how Python shows output to the screen using this idea."
                 )
             },
-
             "practice": {
-                "task": (
-                    "Try printing your own name using print(). "
-                    "Remember: text must be inside quotes and inside parentheses."
-                )
+                "task": "Write a program that displays your name on the screen."
             },
-
             "review": {
                 "summary": (
-                    "You learned that Python uses print() to display output. "
-                    "This is the foundation of all programs, because without output, your program is invisible."
+                    "Great work completing your first lesson! "
+                    "You’ve learned how Python communicates with the user. "
+                    "This is the foundation of all programming."
                 )
             }
         }
@@ -50,43 +43,33 @@ LESSONS = {
     2: {
         "title": "Variables",
         "order": 2,
+        "validation_rule": "must use print and assignment",
         "sections": {
-
             "intro": {
-                "content": (
-                    "Variables allow programs to store information so it can be reused later. "
-                    "Instead of repeating values, we store them in named containers."
-                )
+                "content": "Variables are used to store information so it can be reused later in a program."
             },
-
             "outcomes": {
                 "content": [
                     "Understand what a variable is",
-                    "Learn how to store text and numbers",
-                    "Understand assignment using ="
+                    "Store information in memory",
+                    "Use assignment to store values"
                 ]
             },
-
             "demo": {
-                "code": 'name = "Alex"\nage = 20',
+                "code": "Programs often need to remember information such as numbers or text.",
                 "explanation": (
-                    "A variable is like a labelled box that stores data. "
-                    "Here, we store the text 'Alex' inside the variable name, and the number 20 inside age. "
-                    "The = sign means 'store this value inside the variable' — it does NOT mean equals like in maths."
+                    "Instead of rewriting information again and again, programmers store it in something called a variable. "
+                    "A variable acts like a labelled container in memory. "
+                    "It allows you to store a value and reuse it later in your program whenever needed."
                 )
             },
-
             "practice": {
-                "task": (
-                    "Create a variable called age and store your own age in it. "
-                    "Then try printing it using print(age)."
-                )
+                "task": "Create a variable called age and display it using output."
             },
-
             "review": {
                 "summary": (
-                    "You learned how variables store information. "
-                    "This allows programs to remember and reuse data."
+                    "Nice work, you're starting to think like a programmer! "
+                    "Variables are one of the most important concepts in programming."
                 )
             }
         }
@@ -95,44 +78,34 @@ LESSONS = {
     3: {
         "title": "Data Types",
         "order": 3,
+        "validation_rule": "must use string int float",
         "sections": {
-
             "intro": {
                 "content": (
-                    "Python stores different kinds of data in different formats called data types. "
-                    "These include text (strings), whole numbers (integers), and decimal numbers (floats)."
+                    "Different types of data are used in programming, such as text, whole numbers and decimal numbers."
                 )
             },
-
             "outcomes": {
                 "content": [
-                    "Understand strings, integers, and floats",
-                    "Recognise differences between types",
-                    "Understand why types matter in programming"
+                    "Understand different data types",
+                    "Recognise text vs numbers",
+                    "Understand why types matter"
                 ]
             },
-
             "demo": {
-                "code": 'name = "John"\nage = 25\nheight = 1.75',
+                "code": "Different values in programming behave differently depending on their type.",
                 "explanation": (
-                    "Each value in Python has a type. "
-                    "Text like 'John' is a string (because it is in quotes). "
-                    "Whole numbers like 25 are integers. "
-                    "Decimal numbers like 1.75 are floats. "
-                    "Understanding types is important because Python treats each differently."
+                    "Not all data is treated the same in programming. "
+                    "Text is handled differently from numbers, and numbers can also be split into whole numbers and decimals. "
+                    "Understanding how data behaves helps prevent errors and makes your programs more reliable."
                 )
             },
-
             "practice": {
-                "task": (
-                    "Create three variables: one string, one integer, and one float. "
-                    "Try printing each one."
-                )
+                "task": "Create examples of different types of data: text, whole number, and decimal."
             },
-
             "review": {
                 "summary": (
-                    "You learned that Python uses different data types for different kinds of information."
+                    "Good job — you're now handling different types of information like a real developer."
                 )
             }
         }
@@ -141,43 +114,30 @@ LESSONS = {
     4: {
         "title": "If Statements",
         "order": 4,
+        "validation_rule": "must use if",
         "sections": {
-
             "intro": {
-                "content": (
-                    "If statements allow your program to make decisions. "
-                    "They let your code behave differently depending on conditions."
-                )
+                "content": "Programs can make decisions using conditions."
             },
-
             "outcomes": {
                 "content": [
-                    "Understand conditional logic",
-                    "Use if statements in Python",
-                    "Learn comparison operators like >=, >, <"
+                    "Understand decision making in code",
+                    "Use conditions to control flow"
                 ]
             },
-
             "demo": {
-                "code": 'age = 18\nif age >= 18:\n    print("Adult")',
+                "code": "Programs can choose what to do based on conditions.",
                 "explanation": (
-                    "This code checks a condition: is age greater than or equal to 18? "
-                    "If the condition is true, Python runs the indented code underneath. "
-                    "Indentation is very important in Python — it defines what belongs inside the if statement."
+                    "Sometimes programs need to behave differently depending on a situation. "
+                    "This is called decision making. "
+                    "A condition is checked, and depending on whether it is true or false, the program chooses a path to follow."
                 )
             },
-
             "practice": {
-                "task": (
-                    "Write an if statement that checks if a number is positive. "
-                    "Try testing different values."
-                )
+                "task": "Write a condition that checks if a number is positive."
             },
-
             "review": {
-                "summary": (
-                    "You learned how programs can make decisions using if statements."
-                )
+                "summary": "Well done — your code can now make decisions."
             }
         }
     },
@@ -185,42 +145,181 @@ LESSONS = {
     5: {
         "title": "Loops",
         "order": 5,
+        "validation_rule": "must use loop",
         "sections": {
-
             "intro": {
-                "content": (
-                    "Loops allow you to repeat actions without rewriting code. "
-                    "They are essential for efficiency in programming."
-                )
+                "content": "Loops allow you to repeat actions efficiently."
             },
-
             "outcomes": {
                 "content": [
                     "Understand repetition in code",
-                    "Use for loops",
-                    "Understand range()"
+                    "Use loops to automate tasks"
                 ]
             },
-
             "demo": {
-                "code": 'for i in range(5):\n    print(i)',
+                "code": "Programs can repeat actions without rewriting code.",
                 "explanation": (
-                    "This loop runs 5 times. "
-                    "Each time, i takes a new value starting from 0 up to 4. "
-                    "Loops are useful when you need repetition without writing code multiple times."
+                    "When a task needs to happen many times, writing the same code repeatedly becomes inefficient. "
+                    "Loops allow a program to repeat instructions automatically, making code shorter and more powerful."
                 )
             },
-
             "practice": {
-                "task": (
-                    "Print numbers from 1 to 10 using a loop. "
-                    "Think about how range() works."
+                "task": "Use a loop to print numbers from 1 to 10."
+            },
+            "review": {
+                "summary": "Nice progress — loops are essential for real programs."
+            }
+        }
+    },
+
+    6: {
+        "title": "User Input",
+        "order": 6,
+        "validation_rule": "must use input",
+        "sections": {
+            "intro": {
+                "content": "Programs can interact with users using input."
+            },
+            "outcomes": {
+                "content": [
+                    "Understand user interaction",
+                    "Collect information from users"
+                ]
+            },
+            "demo": {
+                "code": "Programs can receive information from the user while they run.",
+                "explanation": (
+                    "So far, programs have been one-way: they show information to the user. "
+                    "Input allows the program to go the other way and receive information from the user while the program is running."
                 )
             },
+            "practice": {
+                "task": "Ask the user for their age and store it."
+            },
+            "review": {
+                "summary": "Good job — your program can now interact with users."
+            }
+        }
+    },
 
+    7: {
+        "title": "Functions",
+        "order": 7,
+        "validation_rule": "must use function",
+        "sections": {
+            "intro": {
+                "content": "Functions allow you to organise and reuse code."
+            },
+            "outcomes": {
+                "content": [
+                    "Understand reusable code blocks",
+                    "Improve code organisation"
+                ]
+            },
+            "demo": {
+                "code": "Programs often need to reuse the same instructions multiple times.",
+                "explanation": (
+                    "Instead of rewriting the same code again and again, programmers group instructions into reusable blocks. "
+                    "These blocks can be reused whenever needed, making programs easier to manage and understand."
+                )
+            },
+            "practice": {
+                "task": "Create a function that outputs a greeting."
+            },
+            "review": {
+                "summary": "Great work — you're now writing reusable code."
+            }
+        }
+    },
+
+    8: {
+        "title": "Lists",
+        "order": 8,
+        "validation_rule": "must use list",
+        "sections": {
+            "intro": {
+                "content": "Lists store multiple pieces of data together."
+            },
+            "outcomes": {
+                "content": [
+                    "Store multiple values",
+                    "Understand collections"
+                ]
+            },
+            "demo": {
+                "code": "Programs often need to store groups of related items.",
+                "explanation": (
+                    "Instead of storing values separately, programmers use collections to keep related data together. "
+                    "This makes it easier to organise and process multiple values at once."
+                )
+            },
+            "practice": {
+                "task": "Create a list of your favourite items."
+            },
+            "review": {
+                "summary": "Nice — you can now store groups of data efficiently."
+            }
+        }
+    },
+
+    9: {
+        "title": "Loops + Lists",
+        "order": 9,
+        "validation_rule": "must use loop",
+        "sections": {
+            "intro": {
+                "content": "You can combine loops with lists to process multiple items."
+            },
+            "outcomes": {
+                "content": [
+                    "Loop through collections",
+                    "Process multiple items"
+                ]
+            },
+            "demo": {
+                "code": "Programs often need to process each item in a collection.",
+                "explanation": (
+                    "When working with collections of data, programs often need to go through each item one by one. "
+                    "Combining repetition with collections allows programs to handle large amounts of data efficiently."
+                )
+            },
+            "practice": {
+                "task": "Loop through a list and display each item."
+            },
+            "review": {
+                "summary": "Excellent — you're now combining concepts like a developer."
+            }
+        }
+    },
+
+    10: {
+        "title": "Calculator Project",
+        "order": 10,
+        "validation_rule": "must use input and operators",
+        "sections": {
+            "intro": {
+                "content": "Final challenge: build a simple calculator program."
+            },
+            "outcomes": {
+                "content": [
+                    "Combine input, variables and operators",
+                    "Build a working program"
+                ]
+            },
+            "demo": {
+                "code": "Programs can take input and perform calculations using different operations.",
+                "explanation": (
+                    "Programs can take values from users and perform mathematical operations on them. "
+                    "Different operations allow programs to solve different types of problems, such as adding or dividing values."
+                )
+            },
+            "practice": {
+                "task": "Build a calculator that can add, subtract, multiply and divide two numbers."
+            },
             "review": {
                 "summary": (
-                    "You learned how loops help automate repetitive tasks."
+                    "Incredible work completing the course! "
+                    "You've gone from basics to building a working calculator."
                 )
             }
         }

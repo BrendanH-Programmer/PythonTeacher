@@ -8,31 +8,58 @@ from backend.data.lessons import LESSONS
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
+# -------------------------
+# PYTHON SYNTAX CHECK
+# -------------------------
 def is_valid_python(code):
+
     try:
         ast.parse(code)
         return True
+
     except:
         return False
 
 
+# -------------------------
+# MAIN ANALYSIS
+# -------------------------
 def analyse_code(code, hint_level=0, username="Student", lesson_id=None):
 
     syntax_ok = is_valid_python(code)
 
-    lesson = LESSONS.get(int(lesson_id)) if lesson_id else None
+    lesson = None  # ✅ FIX: define BEFORE using it
+
+    try:
+        lesson = LESSONS.get(int(lesson_id))
+    except:
+        lesson = None
+
     # -------------------------
-    # HARD CORRECTNESS CHECK
+    # FIXED SAFETY CHECK (was crashing before)
     # -------------------------
-    is_correct = False
+    if lesson_id is None or lesson is None:
+        return {
+            "correct": False,
+            "message": "Lesson not found. Please reload the page."
+        }
+
+    print("LESSON ID:", lesson_id)
+    print("LESSON FOUND:", lesson)
+
+    # -------------------------
+    # LESSON VALIDATION
+    # -------------------------
+    task_complete = False
 
     if lesson:
-        is_correct = validate_lesson(code, lesson)
+        task_complete = validate_lesson(code, lesson)
 
     # -------------------------
-    # IF CORRECT → RETURN EARLY
+    # SUCCESS
     # -------------------------
-    if is_correct and hint_level == 0:
+    if syntax_ok and task_complete and hint_level == 0:
+
         return {
             "correct": True,
             "message": f"Well done {username}, you completed the task!",
@@ -40,9 +67,27 @@ def analyse_code(code, hint_level=0, username="Student", lesson_id=None):
         }
 
     # -------------------------
-    # FORCE DIFFERENT BEHAVIOUR PER LEVEL
+    # VALID PYTHON BUT WRONG TASK
     # -------------------------
+    if syntax_ok and not task_complete and hint_level == 0:
 
+        lesson_title = "this lesson"
+
+        if lesson and isinstance(lesson, dict):
+            lesson_title = lesson.get("title", "this lesson")
+
+        return {
+            "correct": False,
+            "message":
+                f"Your code is valid Python {username}, "
+                f"but it does not complete the task for "
+                f"'{lesson_title}'. "
+                f"Complete the designated assignment to finish the lesson."
+        }
+
+    # -------------------------
+    # TUTOR STYLES
+    # -------------------------
     if hint_level == 0:
         style = f"""
 You are a STRICT tutor.
@@ -82,9 +127,14 @@ Rules:
 - Ask a question that leads to the answer
 - Focus on reasoning about conditions
 """
-
+    # -------------------------
+    # AI PROMPT
+    # -------------------------
     prompt = f"""
 {style}
+
+lesson:
+{lesson.get("title") if lesson else "Python"}
 
 Code:
 {code}
@@ -94,6 +144,9 @@ No JSON.
 No explanation outside message.
 """
 
+    # -------------------------
+    # AI RESPONSE
+    # -------------------------
     try:
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
@@ -112,6 +165,9 @@ No explanation outside message.
             "hint_level": hint_level
         }
 
+    # -------------------------
+    # ERROR HANDLING
+    # -------------------------
     except Exception as e:
         return {
             "correct": False,

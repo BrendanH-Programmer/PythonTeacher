@@ -1,11 +1,9 @@
 let hintLevel = 0;
 let lastCode = "";
-let currentLessonId = 1;
 
 let lessonCompleted = false;
 let hasAnalysed = false;
-let isAnalyzing = false; // 🔥 CRITICAL FIX (prevents race conditions)
-
+let isAnalyzing = false;
 
 // -------------------------
 // UI STATE CONTROLLER
@@ -16,11 +14,11 @@ function syncHintButton() {
     if (!hintButton) return;
 
     hintButton.disabled =
+        lessonCompleted ||
         !hasAnalysed ||
         hintLevel >= 3 ||
         isAnalyzing;
 }
-
 
 // -------------------------
 // HINT UI TEXT
@@ -34,12 +32,10 @@ function updateHintUI() {
         hintLevel === 0 ? "" : `Hint ${hintLevel}/3 used`;
 }
 
-
 // -------------------------
 // MAIN ANALYSIS FUNCTION
 // -------------------------
 async function sendCode(getHint = false) {
-
     const code = document.getElementById("codeInput").value.trim();
     const responseBox = document.getElementById("responseBox");
 
@@ -48,14 +44,16 @@ async function sendCode(getHint = false) {
         return;
     }
 
-    // -------------------------
-    // HARD GLOBAL LOCK
-    // -------------------------
+    const lessonId = window.currentLessonId; // 🔥 FIXED SAFE ACCESS
+
+    if (!lessonId) {
+        responseBox.innerText = "❌ Lesson not initialised.";
+        return;
+    }
+
     if (isAnalyzing) return;
 
-    // -------------------------
-    // RESET STATE IF CODE CHANGES
-    // -------------------------
+    // reset on new code
     if (code !== lastCode && !getHint) {
 
         hintLevel = 0;
@@ -68,23 +66,16 @@ async function sendCode(getHint = false) {
         syncHintButton();
     }
 
-    // -------------------------
-    // HANDLE HINT REQUEST (FULL SAFETY LOCK)
-    // -------------------------
     if (getHint) {
 
-        if (isAnalyzing || lessonCompleted || !hasAnalysed || hintLevel >= 3) {
+        if (lessonCompleted || !hasAnalysed || hintLevel >= 3) {
             return;
         }
 
         hintLevel++;
         updateHintUI();
-        syncHintButton();
     }
 
-    // -------------------------
-    // START ANALYSIS LOCK
-    // -------------------------
     isAnalyzing = true;
     responseBox.innerText = "⏳ Analysing...";
     syncHintButton();
@@ -98,31 +89,29 @@ async function sendCode(getHint = false) {
             body: JSON.stringify({
                 code,
                 hint_level: hintLevel,
-                lesson_id: currentLessonId
+                lesson_id: lessonId
             })
         });
 
         const data = await res.json();
 
-        // -------------------------
-        // SERVER ERROR
-        // -------------------------
-        if (data.success === false) {
+        if (!data.success) {
             responseBox.innerText = "❌ Server error.";
             return;
         }
 
+        hasAnalysed = true;
+
         // -------------------------
-        // CORRECT ANSWER (FULL LOCK)
+        // CORRECT
         // -------------------------
         if (data.correct) {
 
             lessonCompleted = true;
-            hasAnalysed = true;
             hintLevel = 0;
 
             responseBox.innerText =
-                `✅ Well done Brendan!\n\n${data.message}\n\n🎯 Lesson task completed.\n\nYou can still use hints to explore improvements or deeper understanding.`;
+                `✅ Well done Brendan!\n\n${data.message}\n\n🎯 Lesson complete.`;
 
             updateHintUI();
             syncHintButton();
@@ -131,31 +120,20 @@ async function sendCode(getHint = false) {
         }
 
         // -------------------------
-        // INCORRECT ANSWER
+        // INCORRECT
         // -------------------------
-        hasAnalysed = true;
-
-        responseBox.innerText = `${data.message}`;
+        responseBox.innerText = data.message;
 
         syncHintButton();
 
     } finally {
-
-        // -------------------------
-        // ALWAYS RELEASE LOCK
-        // -------------------------
         isAnalyzing = false;
         syncHintButton();
     }
 }
 
-
-// -------------------------
-// NEXT HINT BUTTON
 // -------------------------
 function nextHint() {
-
-    // HARD SAFETY GATES
     if (isAnalyzing) return;
     if (lessonCompleted) return;
     if (!hasAnalysed) return;
