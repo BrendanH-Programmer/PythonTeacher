@@ -1,111 +1,184 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Python Tutor</title>
+
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body onload="loadDashboard()">
 
-<div class="container">
+    <!-- HEADER -->
+    <header class="app-header">
 
-    <h1>Choose a Lesson</h1>
-    
-    <button onclick="logout()">Logout</button>
-
-    <p id="userInfo">Loading...</p>
-
-    <!-- CONTINUE BUTTON -->
-    <div id="continueBox"></div>
-
-    <!-- LESSON LIST -->
-    <div id="lessonList"></div>
-
-
-
-</div>
-
-<script src="js/auth.js"></script>
-
-<script>
-async function loadDashboard() {
-
-await checkLogin();
-
-const res = await fetch("http://127.0.0.1:5000/api/user/dashboard", {
-    credentials: "include"
-});
-
-const data = await res.json();
-
-if (!data.success) return;
-
-const lessons = data.lessons;
-const nextLesson = data.next_lesson;
-
-const container = document.getElementById("lessonList");
-const continueBox = document.getElementById("continueBox");
-
-container.innerHTML = "";
-continueBox.innerHTML = "";
-
-// -------------------------
-// ✅ CONTINUE BUTTON (NEW)
-// -------------------------
-if (nextLesson) {
-
-    continueBox.innerHTML = `
-        <div class="continue-card">
-            <h2>Continue Learning</h2>
-            <button onclick="openLesson(${nextLesson})">
-                Continue Lesson ${nextLesson}
-            </button>
+        <div>
+            <h1 class="logo-title">AI Python Tutor</h1>
+            <p class="logo-subtitle">
+                Learn Python step-by-step with guided lessons and AI feedback.
+            </p>
         </div>
-    `;
-}
 
-// -------------------------
-// LESSON LIST
-// -------------------------
-lessons.forEach(l => {
+        <div class="top-bar">
 
-    const card = document.createElement("div");
-    card.className = "lesson-card";
+            <div class="top-bar-left">
+                <h1>Choose a Lesson</h1>
+            </div>
 
-    let statusText = "";
-    let actionText = "";
+            <div class="top-bar-right">
+                <button id="themeToggle">🌙 Dark Mode</button>
+                <button onclick="logout()">Logout</button>
+            </div>
 
-    if (l.completed) {
-        statusText = "✅ Completed";
-        actionText = "Review";
-    }
-    else if (l.unlocked) {
-        statusText = l.current ? "▶ Continue Learning" : "🟢 Available";
-        actionText = l.current ? "Continue" : "Start";
-    }
-    else {
-        statusText = "🔒 Locked";
-    }
+        </div>
 
-    card.innerHTML = `
-        <h3>${l.title}</h3>
-        <p>${statusText}</p>
-        ${l.unlocked
-            ? `<button onclick="openLesson(${l.id})">${actionText}</button>`
-            : ""
+    </header>
+
+    <main class="container">
+
+        <!-- USER INFO -->
+        <div class="hero-card">
+            <h2>Welcome Back</h2>
+            <p id="userInfo">Loading your learning progress...</p>
+        </div>
+
+        <!-- CONTINUE -->
+        <div id="continueBox"></div>
+
+        <!-- SECTION TITLE -->
+        <div class="section-header">
+            <h2>Your Lessons</h2>
+            <p>
+                Complete lessons in order to unlock the next challenge.
+            </p>
+        </div>
+
+        <!-- LESSONS -->
+        <div id="lessonList" class="lesson-grid"></div>
+
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="/js/theme.js"></script>
+
+    <script>
+
+        async function loadDashboard() {
+
+            await checkLogin();
+
+            const res = await fetch(
+                "http://127.0.0.1:5000/api/user/dashboard",
+                {
+                    credentials: "include"
+                }
+            );
+
+            const data = await res.json();
+
+            if (!data.success) return;
+
+            const lessons = data.lessons;
+            const nextLesson = data.next_lesson;
+
+            const container =
+                document.getElementById("lessonList");
+
+            const continueBox =
+                document.getElementById("continueBox");
+
+            container.innerHTML = "";
+            continueBox.innerHTML = "";
+
+            // CONTINUE CARD
+            if (nextLesson) {
+
+                continueBox.innerHTML = `
+                    <div class="continue-card">
+                        <h2>Continue Learning</h2>
+
+                        <p>
+                            Jump back into your next available lesson.
+                        </p>
+
+                        <button onclick="openLesson(${nextLesson})">
+                            Continue Lesson ${nextLesson}
+                        </button>
+                    </div>
+                `;
+            }
+
+            // LESSON CARDS
+            lessons.forEach(l => {
+
+                const card = document.createElement("div");
+
+                card.className = "lesson-card";
+
+                let statusText = "";
+                let actionText = "";
+
+                if (l.completed) {
+
+                    statusText = "✅ Completed";
+                    actionText = "Review";
+
+                } else if (l.unlocked) {
+
+                    statusText =
+                        l.current
+                            ? "▶ Continue Learning"
+                            : "🟢 Available";
+
+                    actionText =
+                        l.current
+                            ? "Continue"
+                            : "Start";
+
+                } else {
+
+                    statusText = "🔒 Locked";
+                }
+
+                card.innerHTML = `
+                    <div class="lesson-top">
+                        <span class="lesson-number">
+                            Lesson ${l.id}
+                        </span>
+
+                        <span class="lesson-status">
+                            ${statusText}
+                        </span>
+                    </div>
+
+                    <h3>${l.title}</h3>
+
+                    <p>
+                        Progress through the course to unlock
+                        more advanced Python concepts.
+                    </p>
+
+                    ${l.unlocked
+                        ? `<button onclick="openLesson(${l.id})">
+                            ${actionText}
+                           </button>`
+                        : ""
+                    }
+                `;
+
+                container.appendChild(card);
+            });
         }
-    `;
 
-    container.appendChild(card);
-});
+        function openLesson(id) {
 
-}
+            window.location.href =
+                `/lesson.html?id=${id}`;
+        }
 
-function openLesson(id) {
-window.location.href = `/lesson.html?id=${id}`;
-}
-
-</script>
+    </script>
 
 </body>
 </html>

@@ -1,6 +1,14 @@
-from flask import Blueprint, jsonify, session
-from backend.users.user_store import load_users
-from backend.users.progress_service import get_progress, build_lesson_status
+from flask import Blueprint, jsonify, session, request
+
+from backend.users.user_store import (
+    load_users,
+    save_users
+)
+
+from backend.users.progress_service import (
+    get_progress,
+    build_lesson_status
+)
 
 user_bp = Blueprint("user", __name__)
 
@@ -57,4 +65,59 @@ def dashboard():
         "progress": progress,
         "lessons": lessons,
         "next_lesson": next_lesson
+    })
+
+# -------------------------
+# GET THEME
+# -------------------------
+@user_bp.route("/user/theme", methods=["GET"])
+def get_theme():
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"success": False}), 401
+
+    users = load_users()
+
+    user = users.get(username)
+
+    if not user:
+        return jsonify({"success": False}), 404
+
+    return jsonify({
+        "success": True,
+        "theme": user.get("theme", "dark")
+    })
+
+
+# -------------------------
+# SAVE THEME
+# -------------------------
+@user_bp.route("/user/theme", methods=["POST"])
+def save_theme():
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"success": False}), 401
+
+    data = request.get_json()
+
+    theme = data.get("theme", "dark")
+
+    if theme not in ["light", "dark"]:
+        return jsonify({"success": False}), 400
+
+    users = load_users()
+
+    if username not in users:
+        return jsonify({"success": False}), 404
+
+    users[username]["theme"] = theme
+
+    save_users(users)
+
+    return jsonify({
+        "success": True
     })

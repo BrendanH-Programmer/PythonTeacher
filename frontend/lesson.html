@@ -1,73 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson</title>
+
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body onload="initLessonFromURL()">
-<div class="top-bar">
-    <button onclick="exitLesson()">← Exit Lesson</button>
-        <button onclick="logout()">Logout</button>
-</div>
-<div class="container">
 
-    <h1 id="lessonTitle"></h1>
+    <!-- HEADER -->
+    <header class="app-header">
 
-    <div id="lessonContent"></div>
+        <div>
+            <h1 class="logo-title">AI Python Tutor</h1>
+            <p class="logo-subtitle">
+                Interactive Python learning environment
+            </p>
+        </div>
 
-    <div class="row">
-        <button onclick="prevSection()">Back</button>
-        <button onclick="nextSection()">Next</button>
-    </div>
+        <div class="top-bar">
 
-    <div class="card hidden" id="tutorCard">
-        <textarea id="codeInput"></textarea>
-        <button onclick="sendCode()">Analyse</button>
-        <button id="hintBtn" onclick="nextHint()">Next Hint</button>        <pre id="responseBox"></pre>
-        <div id="hintInfo" style="margin-top:8px;color:gray;"></div>
-    </div>
+            <div class="top-bar-left">
+                <button onclick="exitLesson()">← Exit Lesson</button>
+            </div>
 
-</div>
+            <div class="top-bar-right">
+                <button id="themeToggle">🌙 Dark Mode</button>
+                <button onclick="logout()">Logout</button>
+            </div>
 
-<script src="js/auth.js"></script>
-<script src="js/app.js"></script>
-<script src="js/lesson_engine.js"></script>
-<script>
-async function initLessonPage() {
+        </div>
 
-    await checkLogin();
+    </header>
 
-    const params = new URLSearchParams(window.location.search);
-    const id = parseInt(params.get("id"));
+    <main class="container">
 
-    if (!id) {
-        window.location.href = "/index.html";
-        return;
-    }
+        <!-- LESSON HERO -->
+        <div class="hero-card">
 
-    const res = await fetch("http://127.0.0.1:5000/api/user/lesson-status", {
-        credentials: "include"
-    });
+            <span class="lesson-tag">
+                Active Lesson
+            </span>
 
-    const data = await res.json();
+            <h1 id="lessonTitle"></h1>
 
-    const lesson = data.lessons.find(l => l.id === id);
+            <p>
+                Work through each section carefully before
+                attempting the coding challenge.
+            </p>
 
-    if (!lesson || !lesson.unlocked) {
-        alert("🔒 Lesson locked");
-        window.location.href = "/index.html";
-        return;
-    }
+        </div>
 
-    // 🔥 IMPORTANT FIX (global sync for app.js + engine)
-    window.currentLessonId = id;
+        <!-- LESSON CONTENT -->
+        <div class="card" id="lessonContent"></div>
 
-    currentLesson = id;
-    currentSectionIndex = 0;
+        <!-- NAVIGATION -->
+        <div class="lesson-navigation">
 
-    await loadSection();
-}
-</script>
+            <button onclick="prevSection()">
+                ← Previous
+            </button>
+
+            <button onclick="nextSection()">
+                Next →
+            </button>
+
+        </div>
+
+        <!-- AI TUTOR -->
+        <div class="card hidden" id="tutorCard">
+
+            <div class="editor-header">
+                <h3>Code Editor</h3>
+
+                <p>
+                    Write your solution below and submit it
+                    for analysis.
+                </p>
+            </div>
+
+            <textarea
+                id="codeInput"
+                placeholder="Write your Python code here..."
+            ></textarea>
+
+            <div class="row">
+
+                <button onclick="sendCode()">
+                    Analyse Code
+                </button>
+
+                <button
+                    id="hintBtn"
+                    onclick="nextHint()"
+                >
+                    Next Hint
+                </button>
+
+            </div>
+
+            <pre id="responseBox"></pre>
+
+            <div id="hintInfo"></div>
+
+        </div>
+
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/lesson_engine.js"></script>
+    <script src="/js/theme.js"></script>
+
+    <script>
+
+        async function initLessonPage() {
+
+            await checkLogin();
+
+            const params =
+                new URLSearchParams(window.location.search);
+
+            const id =
+                parseInt(params.get("id"));
+
+            if (!id) {
+
+                window.location.href =
+                    "/index.html";
+
+                return;
+            }
+
+            const res = await fetch(
+                "http://127.0.0.1:5000/api/user/lesson-status",
+                {
+                    credentials: "include"
+                }
+            );
+
+            const data = await res.json();
+
+            const lesson =
+                data.lessons.find(l => l.id === id);
+
+            if (!lesson || !lesson.unlocked) {
+
+                alert("🔒 Lesson locked");
+
+                window.location.href =
+                    "/index.html";
+
+                return;
+            }
+
+            window.currentLessonId = id;
+
+            currentLesson = id;
+            currentSectionIndex = 0;
+
+            await loadSection();
+        }
+
+    </script>
+
 </body>
 </html>

@@ -114,7 +114,7 @@ LESSONS = {
     4: {
         "title": "If Statements",
         "order": 4,
-        "validation_rule": "must use if",
+        "validation_rule": "must use if and comparison",
         "sections": {
             "intro": {
                 "content": "Programs can make decisions using conditions."
@@ -293,7 +293,7 @@ LESSONS = {
     },
 
     10: {
-        "title": "Calculator Project",
+        "title": "Simple Calculator Project",
         "order": 10,
         "validation_rule": "must use input and operators",
         "sections": {
@@ -314,7 +314,7 @@ LESSONS = {
                 )
             },
             "practice": {
-                "task": "Build a calculator that can add, subtract, multiply and divide two numbers."
+                "task": "Ask the user for two numbers, then display the results of adding, subtracting, multiplying and dividing them."
             },
             "review": {
                 "summary": (

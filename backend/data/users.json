@@ -16,7 +16,7 @@
                 10
             ],
             "lessons": {
-                "1": "demo",
+                "1": "practice",
                 "2": "review",
                 "3": "review",
                 "4": "review",
@@ -25,8 +25,9 @@
                 "7": "review",
                 "8": "review",
                 "9": "review",
-                "10": "review"
+                "10": "practice"
             }
-        }
+        },
+        "theme": "dark"
     }
 }
