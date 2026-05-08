@@ -70,8 +70,11 @@ async function toggleTheme() {
         );
 
     } catch (err) {
-
-        console.error("Theme save failed");
+        // fallback to default theme if saving fails
+        document.body.setAttribute(
+            "data-theme",
+            "light"
+        );
     }
 }
 

@@ -44,9 +44,6 @@ def analyse_code(code, hint_level=0, username="Student", lesson_id=None):
             "message": "Lesson not found. Please reload the page."
         }
 
-    print("LESSON ID:", lesson_id)
-    print("LESSON FOUND:", lesson)
-
     # -------------------------
     # LESSON VALIDATION
     # -------------------------

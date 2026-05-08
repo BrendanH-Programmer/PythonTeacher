@@ -3,6 +3,10 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
+import logging
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.ERROR)
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
@@ -14,7 +18,7 @@ from backend.routes.ai_routes import ai_bp
 app = Flask(__name__, static_folder="../frontend")
 
 app.config.update(
-    SESSION_COOKIE_SAMESITE="Lax",   # important
+    SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=False      # must be False for local dev
 )
 
@@ -28,8 +32,6 @@ CORS(
         "http://localhost:5000"
     ]
 )
-
-print("Flask app created")
 
 # ROUTES
 app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -48,5 +50,4 @@ def static_files(path):
 
 
 if __name__ == "__main__":
-    print("Starting Flask server...")
-    app.run(debug=True)
+    app.run(debug=False)

@@ -72,7 +72,6 @@ async function checkLogin() {
         }
 
     } catch (err) {
-        console.error("Session check failed:", err);
         window.location.href = "/login.html";
     }
 }
