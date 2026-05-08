@@ -184,3 +184,8 @@ td, th {
     margin-top: 10px;
     background: #3b82f6;
 }
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

@@ -1,88 +1,165 @@
 let hintLevel = 0;
 let lastCode = "";
+let currentLessonId = 1;
 
-function updateHintUI() {
-    const hintInfo = document.getElementById("hintInfo");
+let lessonCompleted = false;
+let hasAnalysed = false;
+let isAnalyzing = false; // 🔥 CRITICAL FIX (prevents race conditions)
 
-    if (hintInfo) {
-        if (hintLevel === 0) {
-            hintInfo.innerText = "";
-        } else {
-            hintInfo.innerText = `Hint ${hintLevel}/3 used`;
-        }
-    }
+
+// -------------------------
+// UI STATE CONTROLLER
+// -------------------------
+function syncHintButton() {
+
+    const hintButton = document.getElementById("hintBtn");
+    if (!hintButton) return;
+
+    hintButton.disabled =
+        !hasAnalysed ||
+        hintLevel >= 3 ||
+        isAnalyzing;
 }
 
+
+// -------------------------
+// HINT UI TEXT
+// -------------------------
+function updateHintUI() {
+
+    const hintInfo = document.getElementById("hintInfo");
+    if (!hintInfo) return;
+
+    hintInfo.innerText =
+        hintLevel === 0 ? "" : `Hint ${hintLevel}/3 used`;
+}
+
+
+// -------------------------
+// MAIN ANALYSIS FUNCTION
+// -------------------------
 async function sendCode(getHint = false) {
 
-    const code = document.getElementById("codeInput").value;
+    const code = document.getElementById("codeInput").value.trim();
     const responseBox = document.getElementById("responseBox");
-    const hintButton = document.getElementById("hintBtn");
 
-    if (!code.trim()) {
+    if (!code) {
         responseBox.innerText = "⚠️ Please enter some code first.";
         return;
     }
 
-    if (code !== lastCode) {
+    // -------------------------
+    // HARD GLOBAL LOCK
+    // -------------------------
+    if (isAnalyzing) return;
+
+    // -------------------------
+    // RESET STATE IF CODE CHANGES
+    // -------------------------
+    if (code !== lastCode && !getHint) {
+
         hintLevel = 0;
+        lessonCompleted = false;
+        hasAnalysed = false;
+
         lastCode = code;
-        updateHintUI();
 
-        // reset hint button when code changes
-        if (hintButton) hintButton.disabled = false;
+        updateHintUI();
+        syncHintButton();
     }
 
+    // -------------------------
+    // HANDLE HINT REQUEST (FULL SAFETY LOCK)
+    // -------------------------
     if (getHint) {
-        hintLevel = Math.min(hintLevel + 1, 3);
-    }
 
-       // LOCK HINTS AT MAX LEVEL
-    if (hintLevel >= 3 && hintButton) {
-        hintButton.disabled = true;
-    }
+        if (isAnalyzing || lessonCompleted || !hasAnalysed || hintLevel >= 3) {
+            return;
+        }
 
-    updateHintUI();
-
-    responseBox.innerText = "⏳ Analysing...";
-
-    const res = await fetch("http://127.0.0.1:5000/api/ai/analyse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-            code,
-            hint_level: hintLevel
-        })
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-        responseBox.innerText = "❌ Server error.";
-        return;
-    }
-
-    // -------------------------
-    // CORRECT
-    // -------------------------
-    if (data.correct === true) {
-
-        responseBox.innerText =
-            `Well done Brendan!\n\n${data.message}\n\nClick Hint for extra improvement tips!`;
-
-        hintLevel = 0;
+        hintLevel++;
         updateHintUI();
-        return;
+        syncHintButton();
     }
 
     // -------------------------
-    // INCORRECT (AI RESPONSE ONLY)
+    // START ANALYSIS LOCK
     // -------------------------
-    responseBox.innerText =
-        `${data.message}`;
+    isAnalyzing = true;
+    responseBox.innerText = "⏳ Analysing...";
+    syncHintButton();
+
+    try {
+
+        const res = await fetch("http://127.0.0.1:5000/api/ai/analyse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                code,
+                hint_level: hintLevel,
+                lesson_id: currentLessonId
+            })
+        });
+
+        const data = await res.json();
+
+        // -------------------------
+        // SERVER ERROR
+        // -------------------------
+        if (data.success === false) {
+            responseBox.innerText = "❌ Server error.";
+            return;
+        }
+
+        // -------------------------
+        // CORRECT ANSWER (FULL LOCK)
+        // -------------------------
+        if (data.correct) {
+
+            lessonCompleted = true;
+            hasAnalysed = true;
+            hintLevel = 0;
+
+            responseBox.innerText =
+                `✅ Well done Brendan!\n\n${data.message}\n\n🎯 Lesson task completed.\n\nYou can still use hints to explore improvements or deeper understanding.`;
+
+            updateHintUI();
+            syncHintButton();
+
+            return;
+        }
+
+        // -------------------------
+        // INCORRECT ANSWER
+        // -------------------------
+        hasAnalysed = true;
+
+        responseBox.innerText = `${data.message}`;
+
+        syncHintButton();
+
+    } finally {
+
+        // -------------------------
+        // ALWAYS RELEASE LOCK
+        // -------------------------
+        isAnalyzing = false;
+        syncHintButton();
+    }
 }
 
+
+// -------------------------
+// NEXT HINT BUTTON
+// -------------------------
 function nextHint() {
+
+    // HARD SAFETY GATES
+    if (isAnalyzing) return;
+    if (lessonCompleted) return;
+    if (!hasAnalysed) return;
+    if (hintLevel >= 3) return;
+
     sendCode(true);
 }

@@ -2,6 +2,9 @@ import os
 import ast
 from openai import OpenAI
 
+from backend.ai.lesson_validator import validate_lesson
+from backend.data.lessons import LESSONS
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
@@ -13,27 +16,26 @@ def is_valid_python(code):
         return False
 
 
-def analyse_code(code, hint_level=0, username="Student"):
+def analyse_code(code, hint_level=0, username="Student", lesson_id=None):
 
     syntax_ok = is_valid_python(code)
 
+    lesson = LESSONS.get(int(lesson_id)) if lesson_id else None
     # -------------------------
     # HARD CORRECTNESS CHECK
     # -------------------------
-    if syntax_ok and "if" in code and ":" in code:
-        # VERY BASIC heuristic example
-        # (you can expand later with AST logic trees)
-        is_probably_correct = True
-    else:
-        is_probably_correct = False
+    is_correct = False
+
+    if lesson:
+        is_correct = validate_lesson(code, lesson)
 
     # -------------------------
     # IF CORRECT → RETURN EARLY
     # -------------------------
-    if is_probably_correct and hint_level == 0:
+    if is_correct and hint_level == 0:
         return {
             "correct": True,
-            "message": f"Well done {username}, your code looks correct!\n\nClick next hint for potential imporvements or better understanding",
+            "message": f"Well done {username}, you completed the task!",
             "hint": ""
         }
 
@@ -47,7 +49,7 @@ You are a STRICT tutor.
 
 Rules:
 - ONLY say if correct or incorrect
-- If correct: "Well done {username}\n\nClick next hint for potential imporvements or better understanding"
+- If correct: "Well done {username}, you completed the task!"
 - If incorrect: "Ooo {username}, there is a mistake somewhere"
 - NO explanation
 """
