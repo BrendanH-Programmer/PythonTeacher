@@ -126,24 +126,36 @@
 
     <script>
 
+        // -------------------------
+        // INITIALIZE LESSON PAGE
+        // This function initializes the lesson page by checking if the user is logged in, retrieving the
+        // lesson ID from the URL query parameters, and loading the appropriate lesson content based on the user's progress. It ensures that only unlocked lessons can be accessed and redirects the user to the dashboard if they try to access a locked lesson or if there is an issue with the lesson ID. This provides a secure and personalized learning experience for users as they navigate through their lessons.
+        // -------------------------
         async function initLessonPage() {
 
+            // Check if the user is logged in before allowing access to the lesson page. If the user is not logged in, they will be redirected to the login page, ensuring that only authenticated users can access the lesson content. This helps protect user data and provides a secure learning environment for users as they navigate through their lessons.
             await checkLogin();
 
+            // Retrieve the lesson ID from the URL query parameters to determine which lesson content to load. This allows users to access specific lessons directly by using the appropriate URL, providing a seamless transition from the dashboard to the lesson content. If there is an issue with the lesson ID (e.g., invalid ID, missing ID), it will handle the error gracefully and redirect the user to the dashboard as needed.
             const params =
                 new URLSearchParams(window.location.search);
 
+                // Parse the lesson ID from the query parameters and ensure it is a valid integer. If the lesson ID is not valid (e.g., missing, not a number), the user will be redirected to the dashboard, preventing access to invalid lesson content and ensuring a smooth user experience. This helps maintain the integrity of the lesson navigation and provides clear feedback to users when they attempt to access lessons with invalid IDs.
             const id =
                 parseInt(params.get("id"));
 
+                // Fetch the user's lesson status from the server to determine which lessons are unlocked and which lesson content to load. This allows the application to provide a personalized learning experience based on the user's progress, ensuring that users can only access lessons that they have unlocked. If the requested lesson is locked or does not exist, the user will be alerted and redirected to the dashboard, maintaining a secure and user-friendly learning environment.
             if (!id) {
 
+                // If the lesson ID is not valid (e.g., missing, not a number), alert the user and redirect them to the dashboard, preventing access to invalid lesson content and ensuring a smooth user experience. This helps maintain the integrity of the lesson navigation and provides clear feedback to users when they attempt to access lessons with invalid IDs.
                 window.location.href =
                     "/index.html";
 
+                    // Alert the user that the lesson ID is invalid, providing clear feedback about the issue and guiding them to access valid lessons through the dashboard. This helps maintain a user-friendly experience and encourages users to navigate through their lessons using the appropriate channels.
                 return;
             }
 
+            // Fetch the user's lesson status from the server to determine which lessons are unlocked and which lesson content to load. This allows the application to provide a personalized learning experience based on the user's progress, ensuring that users can only access lessons that they have unlocked. If the requested lesson is locked or does not exist, the user will be alerted and redirected to the dashboard, maintaining a secure and user-friendly learning environment.
             const res = await fetch(
                 "http://127.0.0.1:5000/api/user/lesson-status",
                 {
@@ -151,26 +163,35 @@
                 }
             );
 
+            // Parse the JSON response from the server to retrieve the user's lesson status, which includes information about which lessons are unlocked and completed. This data is essential for determining which lesson content to load and ensuring that users can only access lessons that they have unlocked. If there is an issue with the response (e.g., network error, invalid data), it will handle the error gracefully and provide feedback to the user as needed.
             const data = await res.json();
 
+            // Find the requested lesson in the user's lesson status data to determine if it is unlocked and can be accessed. This allows the application to provide a personalized learning experience based on the user's progress, ensuring that users can only access lessons that they have unlocked. If the requested lesson is locked or does not exist, the user will be alerted and redirected to the dashboard, maintaining a secure and user-friendly learning environment.
             const lesson =
                 data.lessons.find(l => l.id === id);
 
+                // If the requested lesson is locked or does not exist, alert the user and redirect them to the dashboard, maintaining a secure and user-friendly learning environment. This helps ensure that users can only access lessons that they have unlocked and provides clear feedback when they attempt to access locked or non-existent lessons.
             if (!lesson || !lesson.unlocked) {
 
+                // Alert the user that the lesson is locked, providing clear feedback about the issue and guiding them to access unlocked lessons through the dashboard. This helps maintain a user-friendly experience and encourages users to continue learning by unlocking new lessons based on their progress.
                 alert("🔒 Lesson locked");
 
+                // Redirect the user to the dashboard, preventing access to locked or non-existent lesson content and ensuring a smooth user experience. This helps maintain the integrity of the lesson navigation and provides clear feedback to users when they attempt to access lessons that are not available to them.
                 window.location.href =
                     "/index.html";
 
+                    // Alert the user that the lesson is locked, providing clear feedback about the issue and guiding them to access unlocked lessons through the dashboard. This helps maintain a user-friendly experience and encourages users to continue learning by unlocking new lessons based on their progress.
                 return;
             }
 
+            // If the lesson is unlocked, set the current lesson ID and load the lesson content, allowing the user to access the lesson and continue their learning journey. This provides a seamless transition from the dashboard to the lesson content, making it easy for users to continue learning by clicking on the appropriate buttons. If there is an issue while trying to load the lesson (e.g., network error, invalid data), it will handle the error gracefully and provide feedback to the user as needed.
             window.currentLessonId = id;
 
+            // Set the current lesson ID and reset the current section index to 0, ensuring that the user starts at the beginning of the lesson content. This provides a consistent learning experience and allows users to navigate through the lesson sections in a structured manner. If there is an issue while trying to load the lesson (e.g., network error, invalid data), it will handle the error gracefully and provide feedback to the user as needed.
             currentLesson = id;
             currentSectionIndex = 0;
 
+            // Load the lesson content based on the current lesson ID and section index, allowing the user to access the appropriate lesson content based on their progress. This provides a seamless transition from the dashboard to the lesson content, making it easy for users to continue learning by clicking on the appropriate buttons. If there is an issue while trying to load the lesson (e.g., network error, invalid data), it will handle the error gracefully and provide feedback to the user as needed.
             await loadSection();
         }
 

@@ -65,10 +65,16 @@
 
     <script>
 
+// -------------------------
+// LOAD DASHBOARD
+// This function loads the user's dashboard by first checking if the user is logged in, and then fetching the user's dashboard data from the server. It updates the dashboard with the user's lesson progress, including a list of lessons and their completion status, as well as a "Continue Learning" card for the next available lesson. This provides users with an overview of their learning progress and allows them to easily access their next lesson or review previous lessons as needed.
+// -------------------------
         async function loadDashboard() {
-
+            
+            // Check if the user is logged in before attempting to load the dashboard, ensuring that only authenticated users can access their learning progress and dashboard information. If the user is not logged in, it will redirect them to the login page or show an appropriate message, preventing unauthorized access to the dashboard and maintaining the security of user data.
             await checkLogin();
 
+            // Fetch the user's dashboard data from the server, including their lesson progress and the next available lesson. This data will be used to update the dashboard with the user's learning progress, allowing them to see which lessons they have completed, which lessons are available, and which lesson is next in their learning path. If there is an error while fetching the dashboard data (e.g., network issues, server errors), it will handle the error gracefully and provide feedback to the user as needed.
             const res = await fetch(
                 "http://127.0.0.1:5000/api/user/dashboard",
                 {
@@ -76,25 +82,34 @@
                 }
             );
 
+            // Parse the JSON response from the server to extract the user's dashboard data, including their lesson progress and the next available lesson. This data will be used to update the dashboard with the user's learning progress, allowing them to see which lessons they have completed, which lessons are available, and which lesson is next in their learning path. If there is an error while parsing the JSON response (e.g., invalid JSON format, unexpected data structure), it will handle the error gracefully and provide feedback to the user as needed.
             const data = await res.json();
 
+            // If the response indicates that the request was not successful (e.g., due to authentication issues, server errors, etc.), it will return early and not attempt to update the dashboard with the user's learning progress. This ensures that the dashboard is only updated with valid and accurate data, and prevents potential issues that could arise from trying to use incomplete or invalid data to update the user interface.
             if (!data.success) return;
 
+            // Extract the lessons and next available lesson from the dashboard data, which will be used to update the dashboard with the user's learning progress. The lessons will be displayed in a list format, showing their completion status and allowing users to access them as needed, while the next available lesson will be highlighted in a "Continue Learning" card to encourage users to keep progressing through their learning path. This provides users with a clear overview of their learning progress and motivates them to continue learning by highlighting their next steps.
             const lessons = data.lessons;
+
+            // Extract the next available lesson from the dashboard data, which will be used to create a "Continue Learning" card on the dashboard. This card will highlight the next lesson that the user can access based on their current progress, encouraging them to continue learning and providing a convenient way to jump back into their next available lesson. If there is no next available lesson (e.g., if the user has completed all lessons), it will simply not display the "Continue Learning" card, allowing users to focus on reviewing their completed lessons or waiting for new lessons to be added.
             const nextLesson = data.next_lesson;
 
+            // Get the lesson list container and the continue box elements from the DOM, which will be used to update the dashboard with the user's learning progress. The lesson list container will be populated with cards for each lesson, showing their completion status and allowing users to access them as needed, while the continue box will be used to display a "Continue Learning" card for the next available lesson, encouraging users to keep progressing through their learning path. If either of these elements is not found in the DOM (e.g., due to a missing element or incorrect ID), it will simply not update that part of the dashboard, allowing the rest of the functionality to work without any issues.
             const container =
                 document.getElementById("lessonList");
 
+                // Get the continue box element from the DOM, which will be used to display a "Continue Learning" card for the next available lesson, encouraging users to keep progressing through their learning path. If the continue box element is not found in the DOM (e.g., due to a missing element or incorrect ID), it will simply not update that part of the dashboard, allowing the rest of the functionality to work without any issues.
             const continueBox =
                 document.getElementById("continueBox");
 
+                // Clear the lesson list container and continue box before updating the dashboard with the user's learning progress, ensuring that any previous content is removed and the dashboard is updated with the most current information. This prevents potential issues that could arise from trying to append new content to existing content without clearing it first, and ensures that the user interface accurately reflects the user's current learning progress.
             container.innerHTML = "";
             continueBox.innerHTML = "";
 
             // CONTINUE CARD
             if (nextLesson) {
 
+                // If there is a next available lesson, create a "Continue Learning" card in the continue box to encourage users to keep progressing through their learning path. This card will highlight the next lesson that the user can access based on their current progress, providing a convenient way to jump back into their next available lesson. If there is no next available lesson (e.g., if the user has completed all lessons), it will simply not display the "Continue Learning" card, allowing users to focus on reviewing their completed lessons or waiting for new lessons to be added.
                 continueBox.innerHTML = `
                     <div class="continue-card">
                         <h2>Continue Learning</h2>
@@ -113,20 +128,26 @@
             // LESSON CARDS
             lessons.forEach(l => {
 
+                // For each lesson in the user's dashboard data, create a card in the lesson list container to display the lesson's completion status and allow users to access it as needed. The card will show the lesson number, title, and a status indicator (e.g., "Completed", "Available", "Locked") based on the user's progress. If the lesson is unlocked, it will also include a button that allows users to open the lesson directly from the dashboard. This provides users with a clear overview of their learning progress and allows them to easily access their lessons based on their completion status.
                 const card = document.createElement("div");
 
+                // Set the class name of the card element to "lesson-card" to apply the appropriate styling for lesson cards in the dashboard, ensuring that each lesson card is visually consistent and follows the design of the application. This allows users to easily identify and interact with their lessons on the dashboard, providing a clear and organized layout for their learning progress.
                 card.className = "lesson-card";
 
+                // Determine the status text and action text for the lesson card based on the lesson's completion status and whether it is unlocked. The status text will indicate whether the lesson is completed, available, or locked, while the action text will indicate whether the user can start or continue the lesson. This provides users with clear information about their progress for each lesson and encourages them to continue learning by highlighting their next steps based on their current status.
                 let statusText = "";
                 let actionText = "";
 
+                // If the lesson is completed, set the status text to "Completed" and the action text to "Review", indicating that the user has completed the lesson and can review it if they wish. If the lesson is unlocked but not completed, set the status text to either "Continue Learning" or "Available" based on whether it is the current lesson, and set the action text to either "Continue" or "Start" accordingly. If the lesson is locked, set the status text to "Locked" and do not provide an action button, indicating that the user cannot access the lesson until they have completed the necessary prerequisites. This provides users with clear information about their progress for each lesson and encourages them to continue learning by highlighting their next steps based on their current status.
                 if (l.completed) {
 
                     statusText = "✅ Completed";
                     actionText = "Review";
 
+                    // If the lesson is completed, set the status text to "Completed" and the action text to "Review", indicating that the user has completed the lesson and can review it if they wish. This provides users with clear information about their progress for each lesson and encourages them to review completed lessons as needed to reinforce their learning.
                 } else if (l.unlocked) {
 
+                    // If the lesson is unlocked but not completed, set the status text to either "Continue Learning" or "Available" based on whether it is the current lesson, and set the action text to either "Continue" or "Start" accordingly. This provides users with clear information about their progress for each lesson and encourages them to continue learning by highlighting their next steps based on their current status.
                     statusText =
                         l.current
                             ? "▶ Continue Learning"
@@ -139,9 +160,11 @@
 
                 } else {
 
+                    // If the lesson is locked, set the status text to "Locked" and do not provide an action button, indicating that the user cannot access the lesson until they have completed the necessary prerequisites. This provides users with clear information about their progress for each lesson and encourages them to continue learning by highlighting their next steps based on their current status.
                     statusText = "🔒 Locked";
                 }
 
+                // Set the inner HTML of the lesson card to display the lesson number, title, status text, and an action button if the lesson is unlocked. This provides users with a clear overview of their learning progress for each lesson and allows them to easily access their lessons based on their completion status. If the lesson is locked, it will simply display the locked status without an action button, indicating that the user cannot access the lesson until they have completed the necessary prerequisites.
                 card.innerHTML = `
                     <div class="lesson-top">
                         <span class="lesson-number">
@@ -168,12 +191,19 @@
                     }
                 `;
 
+                // Append the lesson card to the lesson list container in the dashboard, allowing users to see their lessons and access them based on their completion status. This provides users with a clear overview of their learning progress for each lesson and encourages them to continue learning by highlighting their next steps based on their current status.
                 container.appendChild(card);
             });
         }
 
+        // -------------------------
+        // OPEN LESSON
+        // This function opens a specific lesson by redirecting the user to the lesson page with the
+        // specified lesson ID as a query parameter in the URL. This allows users to access their lessons directly from the dashboard by clicking on the appropriate buttons, providing a seamless transition from the dashboard to the lesson content. If there is an error while trying to open the lesson (e.g., invalid lesson ID, network issues), it will handle the error gracefully and provide feedback to the user as needed.
+        // -------------------------
         function openLesson(id) {
 
+            // Redirect the user to the lesson page with the specified lesson ID as a query parameter in the URL, allowing them to access the lesson content directly from the dashboard. This provides a seamless transition from the dashboard to the lesson content, making it easy for users to continue their learning journey by clicking on the appropriate buttons. If there is an error while trying to open the lesson (e.g., invalid lesson ID, network issues), it will handle the error gracefully and provide feedback to the user as needed.
             window.location.href =
                 `/lesson.html?id=${id}`;
         }
